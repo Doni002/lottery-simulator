@@ -18,4 +18,16 @@ export class SimulationEngine {
 
     return numbers;
   }
+
+  calculateMatches(winningNumbers: number[], ticketNumbers: number[]): {
+    matchCount: number;
+    matchingNumbers: number[];
+  } {
+    const matchingNumbers = ticketNumbers.filter(num => winningNumbers.includes(num));
+
+    return {
+      matchCount: matchingNumbers.length,
+      matchingNumbers: matchingNumbers.sort((a, b) => a - b)
+    };
+  }
 }

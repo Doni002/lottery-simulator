@@ -19,4 +19,17 @@ export class AppController {
     const numbers = this.simulationEngine.generateUniqueNumbers();
     return { numbers };
   }
+
+  @Get('test/calculate-matches')
+  getTestMatches(): { winningNumbers: number[]; ticketNumbers: number[]; matches: { matchCount: number; matchingNumbers: number[] } } {
+    const winningNumbers = this.simulationEngine.generateUniqueNumbers();
+    const ticketNumbers = this.simulationEngine.generateUniqueNumbers();
+    const matches = this.simulationEngine.calculateMatches(winningNumbers, ticketNumbers);
+
+    return {
+      winningNumbers,
+      ticketNumbers,
+      matches
+    };
+  }
 }
