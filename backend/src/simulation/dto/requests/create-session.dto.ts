@@ -1,20 +1,20 @@
 import {
-  ArrayMinSize,
   ArrayMaxSize,
+  ArrayMinSize,
   IsBoolean,
   IsInt,
   IsNumber,
   Max,
   Min,
-  ValidateIf,
   Validate,
+  ValidateIf,
 } from 'class-validator';
-import { IsUniqueArrayConstraint } from '../validators/unique-array.validator';
 import {
-  MIN_LOTTO_NUM,
   MAX_LOTTO_NUM,
+  MIN_LOTTO_NUM,
   REQUIRED_NUMBERS,
-} from '../constants/lottery.constants';
+} from '../../constants/simulation.constants';
+import { IsUniqueArrayConstraint } from '../../../common/validators/unique-array.validator';
 
 export class CreateSessionDto {
   @IsInt()
