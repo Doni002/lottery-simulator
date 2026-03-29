@@ -1,0 +1,1 @@
+export const LOTTERY_PRIZE = 300;

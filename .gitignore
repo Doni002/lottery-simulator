@@ -99,6 +99,5 @@ Thumbs.db
 *.sqlite3
 *.db
 
-# Lock files (uncomment if you want to ignore them)
-# package-lock.json
-# yarn.lock
+# Lock files
+package-lock.json
