@@ -15,26 +15,31 @@ model Session {
   drawSpeed         Int       @default(750) // milliseconds
   randomSeedEnabled Boolean   @default(false)
   customNumbers     Json?     // Array of 5 custom winning numbers: number[]
+  ticketsPlayed     Int       @default(0) // Total number of tickets played in this session
+  simulationRunning Boolean   @default(false)
+  simulationStartedAt DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   tickets           Ticket[]
-  draw              Draw?
+  draws             Draw[]
 }
 
 model Ticket {
   id        Int       @id @default(autoincrement())
   sessionId String
+  drawId    Int
   numbers   Json      // Array of selected numbers: number[]
-  isWinner  Boolean   @default(false)
   createdAt DateTime  @default(now())
   session   Session   @relation(fields: [sessionId], references: [id])
+  draw      Draw      @relation(fields: [drawId], references: [id])
 }
 
 model Draw {
   id             Int      @id @default(autoincrement())
-  sessionId      String   @unique
+  sessionId      String
   winningNumbers Json     // Array of winning numbers: number[]
   drawDate       DateTime
   createdAt      DateTime @default(now())
   session        Session  @relation(fields: [sessionId], references: [id])
+  tickets        Ticket[]
 }
