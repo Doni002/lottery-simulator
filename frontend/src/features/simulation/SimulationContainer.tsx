@@ -1,11 +1,10 @@
-import { Card, SimulationForm, SimulationResult } from './components';
+import { Card, SimulationForm, Summary } from './components';
 
 export function SimulationContainer() {
   return (
-    <div>
-      <div>SimulationContainer</div>
+    <div className="h-full min-h-full flex items-center justify-center p-4 md:p-6">
       <Card>
-        <SimulationResult />
+        <Summary />
         <SimulationForm />
       </Card>
     </div>

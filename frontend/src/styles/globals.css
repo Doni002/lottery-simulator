@@ -1,7 +1,20 @@
+@import "./variables.css";
 @import "tailwindcss";
 
 html,
 body {
 	margin: 0;
 	padding: 0;
+}
+
+body {
+	background: var(--color-page-bg);
+	font-family: var(--font-family-base);
+}
+
+.title-xl {
+	font-size: var(--title-xl-size);
+	line-height: var(--title-xl-line-height);
+	letter-spacing: var(--title-xl-letter-spacing);
+	text-transform: capitalize;
 }
