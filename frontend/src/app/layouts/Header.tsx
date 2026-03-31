@@ -11,7 +11,7 @@ export function Header() {
         <path d="M14 1V28" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
         <path d="M1 14.5H27" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
       </svg>
-      <span className="title-xl font-bold text-white">
+      <span className="text-[20px] leading-[100%] capitalize md:text-[40px] font-bold text-white">
         Lottery Simulator
       </span>
     </header>
