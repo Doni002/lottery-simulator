@@ -5,7 +5,7 @@ interface ResultCardProps {
 
 export function ResultCard({ matchCount, value }: ResultCardProps) {
   return (
-    <div className="bg-white w-full md:w-[127px] h-[72px] flex flex-col items-center justify-center gap-2">
+    <div className="flex h-[72px] w-full flex-col items-center justify-center gap-2 bg-white md:w-[127px]">
       <span className="text-center text-[12px] font-bold leading-[100%] text-[#060658]">
         {matchCount} matches
       </span>

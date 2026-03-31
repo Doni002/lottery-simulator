@@ -1,7 +1,7 @@
 export { Card } from './Card';
 export { MatchStatItem } from './MatchStatItem';
 export { MatchStats } from './MatchStats';
-export { NumberRow } from './NumberRow';
-export { ResultDetails } from './ResultDetails';
+export { NumberBadge, NumberRow, NumbersComparison } from './numbers-comparison';
+export { ResultCard, ResultDetails } from './result-details';
 export { Summary } from './Summary';
 export { SimulationForm } from './SimulationForm';

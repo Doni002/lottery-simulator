@@ -1,4 +1,4 @@
-import { Card, ResultDetails, SimulationForm, Summary } from './components';
+import { Card, NumbersComparison, ResultDetails, SimulationForm, Summary } from './components';
 
 export function SimulationContainer() {
   return (
@@ -6,6 +6,7 @@ export function SimulationContainer() {
       <Card>
         <Summary />
         <ResultDetails />
+        <NumbersComparison />
         <SimulationForm />
       </Card>
     </div>
