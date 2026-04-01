@@ -8,6 +8,7 @@ import {
   CreateSessionResponse,
   SessionDetailsResponse,
   StartSimulationResponse,
+  StopSimulationResponse,
 } from 'src/simulation/dto/responses/simulation.response.dto';
 import { SimulationGateway } from './simulation.gateway';
 
@@ -68,5 +69,12 @@ export class SimulationController {
     @Param('id') sessionId: string,
   ): Promise<StartSimulationResponse> {
     return this.simulationGateway.startSimulationRun(sessionId);
+  }
+
+  @Post('session/:id/stop')
+  async stopSimulation(
+    @Param('id') sessionId: string,
+  ): Promise<StopSimulationResponse> {
+    return this.simulationGateway.stopSimulationRun(sessionId);
   }
 }
