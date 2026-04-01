@@ -1,19 +1,15 @@
-type SocketSkeleton = {
-  connected: boolean;
-  connect: () => void;
-  emit: (_event: string, _payload?: unknown) => void;
-  on: (_event: string, _handler?: (_payload: unknown) => void) => void;
-  off: (_event: string) => void;
-};
+import { io, Socket } from 'socket.io-client';
 
-const socket: SocketSkeleton = {
-  connected: false,
-  connect: () => {},
-  emit: (_event: string, _payload?: unknown) => {},
-  on: (_event: string, _handler?: (_payload: unknown) => void) => {},
-  off: (_event: string) => {},
-};
+const SOCKET_URL = window.socket_url.replace(/\/$/, '');
 
-export function getSocket(): SocketSkeleton {
+let socket: Socket | null = null;
+
+export const getSocket = (): Socket => {
+  if (!socket) {
+    socket = io(SOCKET_URL, {
+      autoConnect: false,
+      transports: ['websocket'],
+    });
+  }
   return socket;
-}
+};

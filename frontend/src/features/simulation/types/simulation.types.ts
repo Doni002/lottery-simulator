@@ -15,6 +15,7 @@ export type SimulationProgressPayload = {
   winningNumbers: number[];
   yourNumbers: number[];
   matchCount: number;
+  isPersistedDraw: boolean;
 };
 
 export type SimulationCompletePayload = SimulationProgressPayload & {

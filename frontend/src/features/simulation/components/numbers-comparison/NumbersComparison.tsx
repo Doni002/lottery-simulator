@@ -1,13 +1,27 @@
 import { NumberRow } from './NumberRow';
 
-const WINNING_NUMBERS = [1, 9, 34, 68, 90];
-const USER_NUMBERS = [2, 7, 32, 44, 87];
+interface NumbersComparisonProps {
+  winningNumbers?: number[];
+  yourNumbers?: (number | undefined)[];
+  isEditable?: boolean;
+  onYourNumbersChange?: (numbers: (number | undefined)[]) => void;
+}
 
-export function NumbersComparison() {
+export function NumbersComparison({
+  winningNumbers = [],
+  yourNumbers = [],
+  isEditable = false,
+  onYourNumbersChange,
+}: NumbersComparisonProps) {
   return (
     <div className="flex w-full flex-col gap-8">
-      <NumberRow label="Winning numbers:" numbers={WINNING_NUMBERS} />
-      <NumberRow label="Your numbers:" numbers={USER_NUMBERS} />
+      <NumberRow label="Winning numbers:" numbers={winningNumbers} />
+      <NumberRow
+        label="Your numbers:"
+        numbers={yourNumbers}
+        editable={isEditable}
+        onChange={onYourNumbersChange}
+      />
     </div>
   );
 }

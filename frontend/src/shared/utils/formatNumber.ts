@@ -1,7 +1,11 @@
 export function formatNumber(value: number): string {
-  return String(value);
+  return new Intl.NumberFormat('hu-HU').format(value);
 }
 
-export function formatCurrency(value: number, _currency = 'HUF'): string {
-  return String(value);
+export function formatCurrency(value: number, currency = 'HUF'): string {
+  return new Intl.NumberFormat('hu-HU', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+  }).format(value);
 }

@@ -2,6 +2,7 @@ interface StartButtonProps {
   onClick: () => void;
   isLoading?: boolean;
   isRunning?: boolean;
+  disabled?: boolean;
   label?: string;
 }
 
@@ -9,6 +10,7 @@ export function StartButton({
   onClick,
   isLoading = false,
   isRunning = false,
+  disabled = false,
   label = 'Start Simulation'
 }: StartButtonProps) {
   const getLabel = () => {
@@ -21,9 +23,9 @@ export function StartButton({
     <button
       type="button"
       onClick={onClick}
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       aria-busy={isLoading}
-      className="w-full cursor-pointer rounded-[12px] bg-[#A5D9C8] px-6 py-3 text-[12px] font-semibold leading-[100%] text-white shadow-[1px_1px_6px_0px_#00000026] transition-all hover:opacity-90 active:scale-99 disabled:opacity-60 disabled:cursor-not-allowed md:text-[16px]"
+      className="w-full cursor-pointer rounded-[12px] bg-[var(--color-mint)] px-6 py-3 text-[12px] font-semibold leading-[100%] text-white shadow-[var(--shadow-element)] transition-all hover:opacity-90 active:scale-99 disabled:opacity-60 disabled:cursor-not-allowed md:text-[16px]"
     >
       {getLabel()}
     </button>

@@ -20,7 +20,7 @@ export function RandomNumbersToggle({
         onClick={onToggle}
         aria-pressed={checked}
         aria-label={label}
-        className="flex h-[20px] w-[20px] items-center justify-center rounded-[6px] border-1 border-[var(--color-simulation-text)] bg-white shadow-[1px_1px_6px_0px_#00000026] md:h-[32px] md:w-[32px] md:rounded-[10px]"
+        className="flex h-[20px] w-[20px] items-center justify-center rounded-[6px] border-1 border-[var(--color-simulation-text)] bg-white shadow-[var(--shadow-element)] md:h-[32px] md:w-[32px] md:rounded-[10px]"
       >
         {checked ? (
           <svg
