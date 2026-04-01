@@ -15,7 +15,6 @@ model Session {
   drawSpeed         Int       @default(750) // milliseconds
   randomSeedEnabled Boolean   @default(false)
   customNumbers     Json?     // Array of 5 custom winning numbers: number[]
-  ticketsPlayed     Int       @default(0) // Total number of tickets played in this session
   simulationRunning Boolean   @default(false)
   simulationStartedAt DateTime?
   createdAt         DateTime  @default(now())

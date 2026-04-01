@@ -45,6 +45,11 @@ export type SimulationCompletePayload = SimulationProgressPayload & {
   totalDrawsRun: number;
 };
 
+export type SimulationPausedPayload = {
+  sessionId: string;
+  message: string;
+};
+
 export type SimulationErrorPayload = {
   sessionId?: string;
   message: string;

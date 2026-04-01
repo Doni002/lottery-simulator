@@ -7,3 +7,4 @@ export type SessionWithRelations = Prisma.SessionGetPayload<{
 export type CreateSessionResponse = { session: Session };
 export type SessionDetailsResponse = { session: SessionWithRelations };
 export type StartSimulationResponse = { accepted: boolean; message: string };
+export type StopSimulationResponse = { accepted: boolean; message: string };

@@ -3,6 +3,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class SimulationLockService {
+  private readonly pauseRequests = new Set<string>();
+  private readonly liveDrawSpeeds = new Map<string, number>();
+
   constructor(private readonly prisma: PrismaService) {}
 
   async tryAcquireSimulationLock(sessionId: string) {
@@ -52,5 +55,28 @@ export class SimulationLockService {
         simulationStartedAt: null,
       },
     });
+
+    this.pauseRequests.delete(sessionId);
+    this.liveDrawSpeeds.delete(sessionId);
+  }
+
+  requestPause(sessionId: string): void {
+    this.pauseRequests.add(sessionId);
+  }
+
+  isPauseRequested(sessionId: string): boolean {
+    return this.pauseRequests.has(sessionId);
+  }
+
+  clearPauseRequest(sessionId: string): void {
+    this.pauseRequests.delete(sessionId);
+  }
+
+  setLiveDrawSpeed(sessionId: string, drawSpeed: number): void {
+    this.liveDrawSpeeds.set(sessionId, drawSpeed);
+  }
+
+  getLiveDrawSpeed(sessionId: string, fallback: number): number {
+    return this.liveDrawSpeeds.get(sessionId) ?? fallback;
   }
 }
