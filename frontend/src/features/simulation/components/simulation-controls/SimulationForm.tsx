@@ -74,7 +74,11 @@ export function SimulationForm({
       <Slider
         value={drawSpeed}
         onChange={setDrawSpeed}
-        onChangeEnd={(sliderValue) => onDrawSpeedChange?.(mapSliderValueToDrawSpeed(sliderValue))}
+        onChangeEnd={(sliderValue) => {
+          if (isRunning) {
+            onDrawSpeedChange?.(mapSliderValueToDrawSpeed(sliderValue));
+          }
+        }}
       />
 
       <StartButton
