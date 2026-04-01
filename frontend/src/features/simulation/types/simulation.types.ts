@@ -28,6 +28,11 @@ export type SimulationErrorPayload = {
   message: string;
 };
 
+export type SimulationPausedPayload = {
+  sessionId: string;
+  message: string;
+};
+
 export type CreateSessionResponse = {
   session: {
     id: string;
@@ -35,6 +40,11 @@ export type CreateSessionResponse = {
 };
 
 export type StartSimulationResponse = {
+  accepted: boolean;
+  message: string;
+};
+
+export type StopSimulationResponse = {
   accepted: boolean;
   message: string;
 };

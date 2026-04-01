@@ -13,7 +13,7 @@ interface SimulationFormProps {
   customNumbers: number[];
   onToggleRandom: () => void;
   onStart: (params: StartSimulationParams) => Promise<boolean>;
-  onStop: () => void;
+  onStop: () => Promise<boolean>;
   onDrawSpeedChange?: (drawSpeed: number) => void;
 }
 
@@ -60,9 +60,8 @@ export function SimulationForm({
     });
   };
 
-  const handleStopSimulation = () => {
-    // Stop endpoint is not available yet; this only updates frontend running state.
-    onStop();
+  const handleStopSimulation = async () => {
+    await onStop();
   };
 
   return (

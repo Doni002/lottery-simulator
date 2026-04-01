@@ -3,6 +3,7 @@ import { simulationApi } from '../api/simulation.api';
 import { useSimulationSocket } from './useSimulationSocket';
 import type {
   SimulationCompletePayload,
+  SimulationPausedPayload,
   SimulationProgressPayload,
 } from '../types/simulation.types';
 
@@ -36,10 +37,16 @@ export function useSimulation() {
     setIsRunning(false);
   }, []);
 
+  const handlePaused = useCallback((_payload: SimulationPausedPayload) => {
+    setIsRunning(false);
+    setError(null);
+  }, []);
+
   useSimulationSocket({
     sessionId: sessionId ?? undefined,
     onProgress: handleProgress,
     onComplete: handleComplete,
+    onPaused: handlePaused,
     onError: handleError,
   });
 
@@ -82,9 +89,28 @@ export function useSimulation() {
     }
   };
 
-  const stop = (): void => {
-    setIsRunning(false);
+  const stop = async (): Promise<boolean> => {
+    if (!sessionId) return false;
+
+    setIsLoading(true);
     setError(null);
+
+    try {
+      const stopResponse = await simulationApi.stopSimulation(sessionId);
+
+      if (!stopResponse.accepted) {
+        setError(stopResponse.message);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to stop simulation';
+      setError(message);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const updateDrawSpeed = async (drawSpeed: number): Promise<void> => {

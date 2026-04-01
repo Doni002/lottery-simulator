@@ -1,4 +1,4 @@
-import { type ChangeEvent, useRef } from 'react';
+import { type ChangeEvent, useCallback, useEffect, useRef } from 'react';
 
 interface SliderProps {
   value: number;
@@ -18,6 +18,8 @@ export function Slider({
   label = 'Speed'
 }: SliderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const isDraggingRef = useRef(false);
+  const endDragRef = useRef<() => void>(() => {});
   const range = max - min;
   const normalized = range > 0 ? Math.max(0, Math.min(100, ((value - min) / range) * 100)) : 0;
 
@@ -25,9 +27,28 @@ export function Slider({
     onChange(Number(event.target.value));
   };
 
-  const handleChangeEnd = () => {
+  const handleChangeEnd = useCallback(() => {
     if (inputRef.current) onChangeEnd?.(Number(inputRef.current.value));
-  };
+  }, [onChangeEnd]);
+
+  const handleDragEnd = useCallback(() => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    window.removeEventListener('pointerup', endDragRef.current);
+    window.removeEventListener('pointercancel', endDragRef.current);
+    handleChangeEnd();
+  }, [handleChangeEnd]);
+
+  useEffect(() => {
+    endDragRef.current = handleDragEnd;
+  }, [handleDragEnd]);
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('pointerup', endDragRef.current);
+      window.removeEventListener('pointercancel', endDragRef.current);
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -51,8 +72,13 @@ export function Slider({
           max={max}
           value={value}
           onChange={handleChange}
-          onMouseUp={handleChangeEnd}
-          onTouchEnd={handleChangeEnd}
+          onPointerDown={() => {
+            if (isDraggingRef.current) return;
+            isDraggingRef.current = true;
+            window.addEventListener('pointerup', endDragRef.current);
+            window.addEventListener('pointercancel', endDragRef.current);
+          }}
+          onBlur={handleDragEnd}
           aria-label={label}
           className="relative z-10 h-[16px] w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-runnable-track]:h-[9px] [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:h-0 [&::-webkit-slider-thumb]:w-0 [&::-webkit-slider-thumb]:appearance-none [&::-moz-range-track]:h-[9px] [&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:h-0 [&::-moz-range-thumb]:w-0 [&::-moz-range-thumb]:border-0 md:[&::-webkit-slider-runnable-track]:h-[10px] md:[&::-moz-range-track]:h-[10px]"
         />
