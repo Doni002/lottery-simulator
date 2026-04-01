@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { REQUIRED_NUMBERS } from '../../constants/simulation.constants';
 import { NumberBadge } from './NumberBadge';
 import { NumberInputBadge } from './NumberInputBadge';
@@ -8,11 +8,18 @@ interface NumberRowProps {
   numbers: (number | undefined)[];
   editable?: boolean;
   onChange?: (numbers: (number | undefined)[]) => void;
+  onNonEditableClick?: () => void;
 }
 
-export function NumberRow({ label, numbers, editable = false, onChange }: NumberRowProps) {
+export function NumberRow({ label, numbers, editable = false, onChange, onNonEditableClick }: NumberRowProps) {
   const slots: (number | undefined)[] = Array.from({ length: REQUIRED_NUMBERS }, (_, i) => numbers[i]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (editable) {
+      inputRefs.current[0]?.focus();
+    }
+  }, [editable]);
 
   const duplicateIndices = new Set(
     slots.flatMap((v, i) =>
@@ -48,7 +55,7 @@ export function NumberRow({ label, numbers, editable = false, onChange }: Number
               onEnter={() => focusNext(i)}
             />
           ) : (
-            <NumberBadge key={i} value={number} />
+            <NumberBadge key={i} value={number} onClick={onNonEditableClick} />
           ),
         )}
       </div>

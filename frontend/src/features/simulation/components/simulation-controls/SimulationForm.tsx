@@ -15,6 +15,8 @@ interface SimulationFormProps {
   onStart: (params: StartSimulationParams) => Promise<boolean>;
   onStop: () => Promise<boolean>;
   onDrawSpeedChange?: (drawSpeed: number) => void;
+  randomCheckboxIsBlinking?: boolean;
+  randomCheckboxDisabled?: boolean;
 }
 
 function mapSliderValueToDrawSpeed(sliderValue: number): number {
@@ -32,7 +34,6 @@ function mapSliderValueToDrawSpeed(sliderValue: number): number {
 }
 
 export function SimulationForm({
-  isLoading,
   isRunning,
   error,
   playWithRandomNumbers,
@@ -41,6 +42,8 @@ export function SimulationForm({
   onStart,
   onStop,
   onDrawSpeedChange,
+  randomCheckboxIsBlinking = false,
+  randomCheckboxDisabled = false,
 }: SimulationFormProps) {
   const [drawSpeed, setDrawSpeed] = useState(68);
 
@@ -69,6 +72,8 @@ export function SimulationForm({
       <RandomNumbersToggle
         checked={playWithRandomNumbers}
         onToggle={onToggleRandom}
+        isBlinking={randomCheckboxIsBlinking}
+        disabled={randomCheckboxDisabled}
       />
 
       <Slider
@@ -83,7 +88,6 @@ export function SimulationForm({
 
       <StartButton
         onClick={isRunning ? handleStopSimulation : handleStartSimulation}
-        isLoading={isLoading}
         isRunning={isRunning}
         disabled={isStartDisabled}
       />

@@ -9,12 +9,25 @@ export function SimulationContainer() {
   const [customNumbers, setCustomNumbers] = useState<(number | undefined)[]>(
     Array(REQUIRED_NUMBERS).fill(undefined),
   );
+  const [isCheckboxBlinking, setIsCheckboxBlinking] = useState(false);
+  const [hasSimulationStarted, setHasSimulationStarted] = useState(false);
 
   const handleToggleRandom = () => {
+    if (hasSimulationStarted) return;
     setPlayWithRandomNumbers((prev) => {
       if (!prev) setCustomNumbers(Array(REQUIRED_NUMBERS).fill(undefined));
       return !prev;
     });
+  };
+
+  const handleStartSimulation = async (params: Parameters<typeof start>[0]) => {
+    setHasSimulationStarted(true);
+    return start(params);
+  };
+
+  const handleNonEditableYourNumbersClick = () => {
+    setIsCheckboxBlinking(true);
+    setTimeout(() => setIsCheckboxBlinking(false), 500);
   };
 
   return (
@@ -31,6 +44,7 @@ export function SimulationContainer() {
           yourNumbers={isRunning || progress ? progress?.yourNumbers : customNumbers}
           isEditable={!playWithRandomNumbers && !isRunning}
           onYourNumbersChange={setCustomNumbers}
+          onNonEditableYourNumbersClick={handleNonEditableYourNumbersClick}
         />
         <SimulationForm
           isLoading={isLoading}
@@ -39,9 +53,11 @@ export function SimulationContainer() {
           playWithRandomNumbers={playWithRandomNumbers}
           customNumbers={customNumbers.filter((v): v is number => v !== undefined)}
           onToggleRandom={handleToggleRandom}
-          onStart={start}
+          onStart={handleStartSimulation}
           onStop={stop}
           onDrawSpeedChange={updateDrawSpeed}
+          randomCheckboxIsBlinking={isCheckboxBlinking}
+          randomCheckboxDisabled={hasSimulationStarted}
         />
       </Card>
     </div>

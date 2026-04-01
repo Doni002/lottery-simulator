@@ -5,6 +5,7 @@ interface NumbersComparisonProps {
   yourNumbers?: (number | undefined)[];
   isEditable?: boolean;
   onYourNumbersChange?: (numbers: (number | undefined)[]) => void;
+  onNonEditableYourNumbersClick?: () => void;
 }
 
 export function NumbersComparison({
@@ -12,6 +13,7 @@ export function NumbersComparison({
   yourNumbers = [],
   isEditable = false,
   onYourNumbersChange,
+  onNonEditableYourNumbersClick,
 }: NumbersComparisonProps) {
   return (
     <div className="flex w-full flex-col gap-8">
@@ -21,6 +23,7 @@ export function NumbersComparison({
         numbers={yourNumbers}
         editable={isEditable}
         onChange={onYourNumbersChange}
+        onNonEditableClick={onNonEditableYourNumbersClick}
       />
     </div>
   );
