@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { SimulationService } from './services/simulation.service';
 import type {
   SimulationErrorPayload,
+  SimulationPausedPayload,
   StartSimulationPayload,
 } from './types/simulation.types';
 
@@ -67,18 +68,33 @@ export class SimulationGateway {
     };
   }
 
+  stopSimulationRun(sessionId: string) {
+    const normalizedSessionId = sessionId.trim();
+
+    if (!normalizedSessionId) {
+      return { accepted: false, message: 'sessionId is required' };
+    }
+
+    this.simulationService.requestPause(normalizedSessionId);
+    return { accepted: true, message: 'Stop requested' };
+  }
+
   private async executeSimulationRun(sessionId: string) {
     const room = this.getSessionRoom(sessionId);
 
     try {
-      const completion = await this.simulationService.runSimulationUntilStop(
+      const result = await this.simulationService.runSimulationUntilStop(
         sessionId,
         (progress) => {
           this.server.to(room).emit('simulationProgress', progress);
         },
       );
 
-      this.server.to(room).emit('simulationComplete', completion);
+      if ('stopReason' in result) {
+        this.server.to(room).emit('simulationComplete', result);
+      } else {
+        this.server.to(room).emit('simulationPaused', result as SimulationPausedPayload);
+      }
     } catch (error) {
       this.emitError(room, {
         sessionId,

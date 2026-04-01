@@ -6,6 +6,7 @@ import { UpdateRandomSeedDto } from '../dto/requests/update-random-seed.dto';
 import {
   MatchSummary,
   SimulationCompletePayload,
+  SimulationPausedPayload,
   SimulationProgressPayload,
   SimulationSession,
 } from '../types/simulation.types';
@@ -41,6 +42,10 @@ export class SimulationService {
     await this.lockService.releaseSimulationLock(sessionId);
   }
 
+  requestPause(sessionId: string): void {
+    this.lockService.requestPause(sessionId);
+  }
+
   async createSession(dto: CreateSessionDto) {
     return this.sessionService.createSession(dto);
   }
@@ -50,7 +55,9 @@ export class SimulationService {
   }
 
   async updateDrawSpeed(sessionId: string, dto: UpdateDrawSpeedDto) {
-    return this.sessionService.updateDrawSpeed(sessionId, dto);
+    const session = await this.sessionService.updateDrawSpeed(sessionId, dto);
+    this.lockService.setLiveDrawSpeed(sessionId, dto.drawSpeed);
+    return session;
   }
 
   async updateRandomSeed(sessionId: string, dto: UpdateRandomSeedDto) {
@@ -83,8 +90,10 @@ export class SimulationService {
   async runSimulationUntilStop(
     sessionId: string,
     onProgress: (payload: SimulationProgressPayload) => void | Promise<void>,
-  ): Promise<SimulationCompletePayload> {
+  ): Promise<SimulationCompletePayload | SimulationPausedPayload> {
     const session = await this.sessionService.getSessionForSimulation(sessionId);
+    this.lockService.setLiveDrawSpeed(sessionId, session.drawSpeed);
+
     const matches =
       await this.persistenceService.calculatePersistedMatchSummary(sessionId);
 
@@ -121,8 +130,13 @@ export class SimulationService {
         };
       }
 
+      if (this.lockService.isPauseRequested(sessionId)) {
+        this.lockService.clearPauseRequest(sessionId);
+        return { sessionId, message: 'Simulation paused' };
+      }
+
       if (drawIndex < MAX_SIMULATION_DRAWS) {
-        await this.waitForNextDraw(session.drawSpeed);
+        await this.waitForNextDraw(sessionId, session.drawSpeed);
       }
     }
 
@@ -175,14 +189,28 @@ export class SimulationService {
     if (matchCount === 5) summary.fiveMatches++;
   }
 
-  private async waitForNextDraw(drawSpeedMs: number) {
-    const delayMs = Number.isFinite(drawSpeedMs)
-      ? Math.max(0, Math.floor(drawSpeedMs))
-      : DEFAULT_DRAW_SPEED_MS;
+  private async waitForNextDraw(sessionId: string, fallbackDrawSpeedMs: number) {
+    const startedAt = Date.now();
 
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, delayMs);
-    });
+    while (true) {
+      const currentSpeed = this.lockService.getLiveDrawSpeed(
+        sessionId,
+        fallbackDrawSpeedMs,
+      );
+      const targetDelayMs = Number.isFinite(currentSpeed)
+        ? Math.max(0, Math.floor(currentSpeed))
+        : DEFAULT_DRAW_SPEED_MS;
+      const elapsedMs = Date.now() - startedAt;
+      const remainingMs = targetDelayMs - elapsedMs;
+
+      if (remainingMs <= 0) {
+        return;
+      }
+
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, Math.min(remainingMs, 50));
+      });
+    }
   }
 
   private resolveTicketNumbers(session: SimulationSession): number[] {
