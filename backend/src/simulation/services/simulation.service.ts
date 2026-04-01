@@ -28,6 +28,8 @@ import { SimulationPersistenceService } from './simulation-persistence.service';
 
 @Injectable()
 export class SimulationService {
+  private readonly ticketCounts = new Map<string, number>();
+
   constructor(
     private readonly lockService: SimulationLockService,
     private readonly sessionService: SimulationSessionService,
@@ -167,8 +169,7 @@ export class SimulationService {
       );
     }
 
-    const numberOfTickets =
-      await this.persistenceService.incrementTicketsPlayed(sessionId);
+    const numberOfTickets = this.incrementTicketCount(sessionId);
 
     return {
       winningNumbers,
@@ -232,5 +233,12 @@ export class SimulationService {
       yearsSpent: Math.floor(numberOfTickets / WEEKS_PER_YEAR),
       costOfTickets: numberOfTickets * LOTTERY_PRIZE,
     };
+  }
+
+  private incrementTicketCount(sessionId: string): number {
+    const currentCount = this.ticketCounts.get(sessionId) ?? 0;
+    const nextCount = currentCount + 1;
+    this.ticketCounts.set(sessionId, nextCount);
+    return nextCount;
   }
 }
