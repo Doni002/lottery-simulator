@@ -13,7 +13,7 @@ import type {
   StartSimulationPayload,
 } from './types/simulation.types';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway()
 export class SimulationGateway {
   @WebSocketServer()
   server!: Server;
