@@ -1,13 +1,16 @@
-export function mapSliderValueToDrawSpeed(sliderValue: number): number {
-  const minSlider = 1;
-  const maxSlider = 100;
-  const minBackendSpeed = 10;
-  const maxBackendSpeed = 1000;
+import {
+  DRAW_SPEED_MAX,
+  DRAW_SPEED_MIN,
+  DRAW_SPEED_SLIDER_MAX,
+  DRAW_SPEED_SLIDER_MIN,
+} from '../constants/simulation.constants';
 
-  const ratio = (sliderValue - minSlider) / (maxSlider - minSlider);
+export function mapSliderValueToDrawSpeed(sliderValue: number): number {
+  const ratio = (sliderValue - DRAW_SPEED_SLIDER_MIN) /
+    (DRAW_SPEED_SLIDER_MAX - DRAW_SPEED_SLIDER_MIN);
   const clampedRatio = Math.max(0, Math.min(1, ratio));
 
   return Math.round(
-    maxBackendSpeed - (maxBackendSpeed - minBackendSpeed) * clampedRatio,
+    DRAW_SPEED_MAX - (DRAW_SPEED_MAX - DRAW_SPEED_MIN) * clampedRatio,
   );
 }
