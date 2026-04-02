@@ -20,7 +20,10 @@ export function Slider({
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const onChangeEndRef = useRef(onChangeEnd);
-  onChangeEndRef.current = onChangeEnd;
+
+  useEffect(() => {
+    onChangeEndRef.current = onChangeEnd;
+  }, [onChangeEnd]);
 
   const range = max - min;
   const normalized = range > 0 ? Math.max(0, Math.min(100, ((value - min) / range) * 100)) : 0;
