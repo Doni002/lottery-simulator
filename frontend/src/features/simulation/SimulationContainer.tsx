@@ -21,8 +21,13 @@ export function SimulationContainer() {
   };
 
   const handleStartSimulation = async (params: Parameters<typeof start>[0]) => {
-    setHasSimulationStarted(true);
-    return start(params);
+    const started = await start(params);
+
+    if (started) {
+      setHasSimulationStarted(true);
+    }
+
+    return started;
   };
 
   const handleNonEditableYourNumbersClick = () => {
