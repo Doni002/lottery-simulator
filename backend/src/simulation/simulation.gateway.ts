@@ -1,6 +1,7 @@
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -14,9 +15,11 @@ import type {
 } from './types/simulation.types';
 
 @WebSocketGateway()
-export class SimulationGateway {
+export class SimulationGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
+
+  private readonly socketSessions = new Map<string, string>();
 
   constructor(private readonly simulationService: SimulationService) {}
 
@@ -36,6 +39,7 @@ export class SimulationGateway {
 
     const room = this.getSessionRoom(sessionId);
     client.join(room);
+    this.socketSessions.set(client.id, sessionId);
     client.emit('sessionSubscribed', { sessionId });
   }
 
@@ -66,6 +70,21 @@ export class SimulationGateway {
       accepted: true,
       message: 'Simulation started',
     };
+  }
+
+  handleDisconnect(client: Socket) {
+    const sessionId = this.socketSessions.get(client.id);
+    this.socketSessions.delete(client.id);
+
+    if (!sessionId) return;
+
+    const room = this.getSessionRoom(sessionId);
+    const roomSockets = this.server.sockets.adapter.rooms.get(room);
+    const remainingClients = roomSockets ? roomSockets.size : 0;
+
+    if (remainingClients === 0) {
+      this.simulationService.requestPause(sessionId);
+    }
   }
 
   stopSimulationRun(sessionId: string) {

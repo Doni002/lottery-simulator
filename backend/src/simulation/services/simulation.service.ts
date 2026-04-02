@@ -42,6 +42,7 @@ export class SimulationService {
 
   async releaseSimulationLock(sessionId: string) {
     await this.lockService.releaseSimulationLock(sessionId);
+    this.ticketCounts.delete(sessionId);
   }
 
   requestPause(sessionId: string): void {
