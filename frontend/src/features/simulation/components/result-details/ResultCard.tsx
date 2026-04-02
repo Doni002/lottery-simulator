@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { formatNumber } from '../../../../shared/utils/formatNumber';
+import { formatNumber } from '../../utils/numberFormat.utils';
 
 interface ResultCardProps {
   matchCount: number;
