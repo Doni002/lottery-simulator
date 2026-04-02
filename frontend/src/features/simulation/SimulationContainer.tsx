@@ -44,6 +44,10 @@ export function SimulationContainer() {
     blinkTimeoutRef.current = setTimeout(() => setIsCheckboxBlinking(false), 500);
   }, []);
 
+  const canEditCustomNumbers = !playWithRandomNumbers && !isRunning && !hasSimulationStarted;
+
+  const displayNumbers = playWithRandomNumbers && (isRunning || progress) ? progress?.yourNumbers : customNumbers;
+
   return (
     <div className="h-full min-h-full flex items-center justify-center p-4 md:p-6">
       <Card>
@@ -56,8 +60,8 @@ export function SimulationContainer() {
         <ResultDetails matches={progress?.matches} />
         <NumbersComparison
           winningNumbers={progress?.winningNumbers}
-          yourNumbers={isRunning || progress ? progress?.yourNumbers : customNumbers}
-          isEditable={!playWithRandomNumbers && !isRunning}
+          yourNumbers={displayNumbers}
+          isEditable={canEditCustomNumbers}
           onYourNumbersChange={setCustomNumbers}
           onNonEditableYourNumbersClick={handleNonEditableYourNumbersClick}
         />
