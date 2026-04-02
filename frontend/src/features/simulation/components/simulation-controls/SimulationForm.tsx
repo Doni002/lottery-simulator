@@ -13,8 +13,10 @@ interface SimulationFormProps {
   customNumbers: number[];
   onToggleRandom: () => void;
   onStart: (params: StartSimulationParams) => Promise<boolean>;
-  onStop: () => void;
+  onStop: () => Promise<boolean>;
   onDrawSpeedChange?: (drawSpeed: number) => void;
+  randomCheckboxIsBlinking?: boolean;
+  randomCheckboxDisabled?: boolean;
 }
 
 function mapSliderValueToDrawSpeed(sliderValue: number): number {
@@ -32,7 +34,6 @@ function mapSliderValueToDrawSpeed(sliderValue: number): number {
 }
 
 export function SimulationForm({
-  isLoading,
   isRunning,
   error,
   playWithRandomNumbers,
@@ -41,6 +42,8 @@ export function SimulationForm({
   onStart,
   onStop,
   onDrawSpeedChange,
+  randomCheckboxIsBlinking = false,
+  randomCheckboxDisabled = false,
 }: SimulationFormProps) {
   const [drawSpeed, setDrawSpeed] = useState(68);
 
@@ -60,9 +63,8 @@ export function SimulationForm({
     });
   };
 
-  const handleStopSimulation = () => {
-    // Stop endpoint is not available yet; this only updates frontend running state.
-    onStop();
+  const handleStopSimulation = async () => {
+    await onStop();
   };
 
   return (
@@ -70,17 +72,22 @@ export function SimulationForm({
       <RandomNumbersToggle
         checked={playWithRandomNumbers}
         onToggle={onToggleRandom}
+        isBlinking={randomCheckboxIsBlinking}
+        disabled={randomCheckboxDisabled}
       />
 
       <Slider
         value={drawSpeed}
         onChange={setDrawSpeed}
-        onChangeEnd={(sliderValue) => onDrawSpeedChange?.(mapSliderValueToDrawSpeed(sliderValue))}
+        onChangeEnd={(sliderValue) => {
+          if (isRunning) {
+            onDrawSpeedChange?.(mapSliderValueToDrawSpeed(sliderValue));
+          }
+        }}
       />
 
       <StartButton
         onClick={isRunning ? handleStopSimulation : handleStartSimulation}
-        isLoading={isLoading}
         isRunning={isRunning}
         disabled={isStartDisabled}
       />

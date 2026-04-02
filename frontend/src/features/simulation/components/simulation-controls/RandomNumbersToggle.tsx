@@ -2,12 +2,16 @@ interface RandomNumbersToggleProps {
   checked: boolean;
   onToggle: () => void;
   label?: string;
+  isBlinking?: boolean;
+  disabled?: boolean;
 }
 
 export function RandomNumbersToggle({
   checked,
   onToggle,
-  label = 'Play with random numbers:'
+  label = 'Play with random numbers:',
+  isBlinking = false,
+  disabled = false
 }: RandomNumbersToggleProps) {
   return (
     <div className="flex items-center gap-10 md:gap-20">
@@ -18,9 +22,16 @@ export function RandomNumbersToggle({
       <button
         type="button"
         onClick={onToggle}
+        disabled={disabled}
         aria-pressed={checked}
         aria-label={label}
-        className="flex h-[20px] w-[20px] items-center justify-center rounded-[6px] border-1 border-[var(--color-simulation-text)] bg-white shadow-[var(--shadow-element)] md:h-[32px] md:w-[32px] md:rounded-[10px]"
+        className={`flex h-[20px] w-[20px] items-center justify-center rounded-[6px] border-1 bg-white shadow-[var(--shadow-element)] md:h-[32px] md:w-[32px] md:rounded-[10px] ${
+          disabled
+            ? 'opacity-50 cursor-not-allowed border-[var(--color-simulation-text)]'
+            : isBlinking
+              ? 'animate-pulse border-red-500'
+              : 'border-[var(--color-simulation-text)]'
+        }`}
       >
         {checked ? (
           <svg
