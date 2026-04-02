@@ -10,14 +10,10 @@ import {
   StartSimulationResponse,
   StopSimulationResponse,
 } from 'src/simulation/dto/responses/simulation.response.dto';
-import { SimulationGateway } from './simulation.gateway';
 
 @Controller('simulation')
 export class SimulationController {
-  constructor(
-    private readonly simulationService: SimulationService,
-    private readonly simulationGateway: SimulationGateway,
-  ) {}
+  constructor(private readonly simulationService: SimulationService) {}
 
   @Post('session')
   async createSession(@Body() dto: CreateSessionDto): Promise<CreateSessionResponse> {
@@ -68,13 +64,13 @@ export class SimulationController {
   async startSimulation(
     @Param('id') sessionId: string,
   ): Promise<StartSimulationResponse> {
-    return this.simulationGateway.startSimulationRun(sessionId);
+    return this.simulationService.startSimulation(sessionId);
   }
 
   @Post('session/:id/stop')
   async stopSimulation(
     @Param('id') sessionId: string,
   ): Promise<StopSimulationResponse> {
-    return this.simulationGateway.stopSimulationRun(sessionId);
+    return this.simulationService.stopSimulation(sessionId);
   }
 }

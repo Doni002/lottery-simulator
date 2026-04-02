@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { CreateSessionDto } from '../dto/requests/create-session.dto';
 import { UpdateCustomNumbersDto } from '../dto/requests/update-custom-numbers.dto';
 import { UpdateDrawSpeedDto } from '../dto/requests/update-draw-speed.dto';
@@ -11,6 +16,10 @@ import {
   SimulationSession,
 } from '../types/simulation.types';
 import {
+  StartSimulationResponse,
+  StopSimulationResponse,
+} from '../dto/responses/simulation.response.dto';
+import {
   DEFAULT_DRAW_SPEED_MS,
   LOTTERY_PRIZE,
   MAX_SIMULATION_DRAWS,
@@ -22,9 +31,11 @@ import {
   calculateMatches,
   generateUniqueNumbers,
 } from '../utils/simulation-number.utils';
+import { incrementMatchBucket } from '../utils/match-summary.utils';
 import { SimulationLockService } from './simulation-lock.service';
 import { SimulationSessionService } from './simulation-session.service';
 import { SimulationPersistenceService } from './simulation-persistence.service';
+import { SimulationGateway } from '../simulation.gateway';
 
 @Injectable()
 export class SimulationService {
@@ -34,6 +45,8 @@ export class SimulationService {
     private readonly lockService: SimulationLockService,
     private readonly sessionService: SimulationSessionService,
     private readonly persistenceService: SimulationPersistenceService,
+    @Inject(forwardRef(() => SimulationGateway))
+    private readonly gateway: SimulationGateway,
   ) {}
 
   async tryAcquireSimulationLock(sessionId: string) {
@@ -47,6 +60,34 @@ export class SimulationService {
 
   requestPause(sessionId: string): void {
     this.lockService.requestPause(sessionId);
+  }
+
+  async startSimulation(sessionId: string): Promise<StartSimulationResponse> {
+    const normalizedId = sessionId.trim();
+
+    if (!normalizedId) {
+      return { accepted: false, message: 'sessionId is required' };
+    }
+
+    const lock = await this.lockService.tryAcquireSimulationLock(normalizedId);
+
+    if (!lock.acquired) {
+      return { accepted: false, message: lock.message };
+    }
+
+    void this.gateway.executeSimulationRun(normalizedId);
+    return { accepted: true, message: 'Simulation started' };
+  }
+
+  stopSimulation(sessionId: string): StopSimulationResponse {
+    const normalizedId = sessionId.trim();
+
+    if (!normalizedId) {
+      return { accepted: false, message: 'sessionId is required' };
+    }
+
+    this.lockService.requestPause(normalizedId);
+    return { accepted: true, message: 'Stop requested' };
   }
 
   async createSession(dto: CreateSessionDto) {
@@ -185,10 +226,7 @@ export class SimulationService {
       return;
     }
 
-    if (matchCount === 2) summary.twoMatches++;
-    if (matchCount === 3) summary.threeMatches++;
-    if (matchCount === 4) summary.fourMatches++;
-    if (matchCount === 5) summary.fiveMatches++;
+    incrementMatchBucket(summary, matchCount);
   }
 
   private async waitForNextDraw(sessionId: string, fallbackDrawSpeedMs: number) {

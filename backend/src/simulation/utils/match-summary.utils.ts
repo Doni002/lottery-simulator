@@ -4,6 +4,16 @@ import {
 } from '../types/simulation.types';
 import { calculateMatches } from './simulation-number.utils';
 
+export function incrementMatchBucket(
+  summary: MatchSummary,
+  matchCount: number,
+): void {
+  if (matchCount === 2) summary.twoMatches++;
+  if (matchCount === 3) summary.threeMatches++;
+  if (matchCount === 4) summary.fourMatches++;
+  if (matchCount === 5) summary.fiveMatches++;
+}
+
 export function summarizePersistedMatches(
   tickets: PersistedTicketSnapshot[],
 ): MatchSummary {
@@ -14,11 +24,7 @@ export function summarizePersistedMatches(
       ticket.winningNumbers,
       ticket.ticketNumbers,
     );
-
-    if (matchCount === 2) summary.twoMatches++;
-    if (matchCount === 3) summary.threeMatches++;
-    if (matchCount === 4) summary.fourMatches++;
-    if (matchCount === 5) summary.fiveMatches++;
+    incrementMatchBucket(summary, matchCount);
   }
 
   return summary;

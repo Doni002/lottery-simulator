@@ -1,3 +1,4 @@
+import { Inject, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -21,7 +22,10 @@ export class SimulationGateway implements OnGatewayDisconnect {
 
   private readonly socketSessions = new Map<string, string>();
 
-  constructor(private readonly simulationService: SimulationService) {}
+  constructor(
+    @Inject(forwardRef(() => SimulationService))
+    private readonly simulationService: SimulationService,
+  ) {}
 
   @SubscribeMessage('subscribeSession')
   handleSubscribeSession(
@@ -43,35 +47,6 @@ export class SimulationGateway implements OnGatewayDisconnect {
     client.emit('sessionSubscribed', { sessionId });
   }
 
-  async startSimulationRun(sessionId: string) {
-    const normalizedSessionId = sessionId.trim();
-
-    if (!normalizedSessionId) {
-      return {
-        accepted: false,
-        message: 'sessionId is required',
-      };
-    }
-
-    const lock = await this.simulationService.tryAcquireSimulationLock(
-      normalizedSessionId,
-    );
-
-    if (!lock.acquired) {
-      return {
-        accepted: false,
-        message: lock.message,
-      };
-    }
-
-    void this.executeSimulationRun(normalizedSessionId);
-
-    return {
-      accepted: true,
-      message: 'Simulation started',
-    };
-  }
-
   handleDisconnect(client: Socket) {
     const sessionId = this.socketSessions.get(client.id);
     this.socketSessions.delete(client.id);
@@ -87,18 +62,7 @@ export class SimulationGateway implements OnGatewayDisconnect {
     }
   }
 
-  stopSimulationRun(sessionId: string) {
-    const normalizedSessionId = sessionId.trim();
-
-    if (!normalizedSessionId) {
-      return { accepted: false, message: 'sessionId is required' };
-    }
-
-    this.simulationService.requestPause(normalizedSessionId);
-    return { accepted: true, message: 'Stop requested' };
-  }
-
-  private async executeSimulationRun(sessionId: string) {
+  async executeSimulationRun(sessionId: string) {
     const room = this.getSessionRoom(sessionId);
 
     try {
