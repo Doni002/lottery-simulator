@@ -15,7 +15,7 @@ export function RandomNumbersToggle({
 }: RandomNumbersToggleProps) {
   return (
     <div className="flex items-center gap-10 md:gap-20">
-      <span className="text-[12px] leading-[100%] text-[var(--color-simulation-text)] md:text-[16px]">
+      <span className="text-[12px] text-[var(--color-simulation-text)] md:text-[16px]">
         {label}
       </span>
 
@@ -24,7 +24,6 @@ export function RandomNumbersToggle({
         onClick={onToggle}
         disabled={disabled}
         aria-pressed={checked}
-        aria-label={label}
         className={`flex h-[20px] w-[20px] items-center justify-center rounded-[6px] border-1 bg-white shadow-[var(--shadow-element)] md:h-[32px] md:w-[32px] md:rounded-[10px] ${
           disabled
             ? 'opacity-50 cursor-not-allowed border-[var(--color-simulation-text)]'

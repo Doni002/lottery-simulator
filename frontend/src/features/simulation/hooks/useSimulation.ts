@@ -50,7 +50,7 @@ export function useSimulation() {
     onError: handleError,
   });
 
-  const start = async (params: StartSimulationParams): Promise<boolean> => {
+  const start = useCallback(async (params: StartSimulationParams): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     setCompletion(null);
@@ -87,9 +87,9 @@ export function useSimulation() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sessionId]);
 
-  const stop = async (): Promise<boolean> => {
+  const stop = useCallback(async (): Promise<boolean> => {
     if (!sessionId) return false;
 
     setIsLoading(true);
@@ -111,12 +111,12 @@ export function useSimulation() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sessionId]);
 
-  const updateDrawSpeed = async (drawSpeed: number): Promise<void> => {
+  const updateDrawSpeed = useCallback(async (drawSpeed: number): Promise<void> => {
     if (!sessionId) return;
     await simulationApi.updateDrawSpeed(sessionId, drawSpeed);
-  };
+  }, [sessionId]);
 
   return { sessionId, isRunning, isLoading, error, progress, completion, start, stop, updateDrawSpeed };
 }

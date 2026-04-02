@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import type { StartSimulationParams } from '../../hooks/useSimulation';
 import { REQUIRED_NUMBERS } from '../../constants/simulation.constants';
 import { RandomNumbersToggle } from './RandomNumbersToggle';
@@ -6,7 +6,6 @@ import { Slider } from './Slider';
 import { StartButton } from './StartButton';
 
 interface SimulationFormProps {
-  isLoading: boolean;
   isRunning: boolean;
   error: string | null;
   playWithRandomNumbers: boolean;
@@ -33,7 +32,7 @@ function mapSliderValueToDrawSpeed(sliderValue: number): number {
   );
 }
 
-export function SimulationForm({
+export const SimulationForm = memo(function SimulationForm({
   isRunning,
   error,
   playWithRandomNumbers,
@@ -93,8 +92,8 @@ export function SimulationForm({
       />
 
       {error ? (
-        <p className="text-[12px] leading-[120%] text-red-600 md:text-[14px]">{error}</p>
+        <p className="text-[12px] text-red-600 md:text-[14px]">{error}</p>
       ) : null}
     </div>
   );
-}
+});

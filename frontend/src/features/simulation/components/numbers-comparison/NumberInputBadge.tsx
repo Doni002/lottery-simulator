@@ -36,7 +36,7 @@ export const NumberInputBadge = forwardRef<HTMLInputElement, NumberInputBadgePro
             onEnter?.();
           }
         }}
-        className={`flex h-[25px] w-[22px] items-center justify-center rounded-[6px] border bg-white text-center text-[12px] leading-[100%] text-[var(--color-simulation-text)] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none md:h-[38px] md:w-[34px] md:rounded-[10px] md:text-[16px] ${borderClass}`}
+        className={`flex h-[25px] w-[22px] items-center justify-center rounded-[6px] border bg-white text-center text-[12px] text-[var(--color-simulation-text)] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none md:h-[38px] md:w-[34px] md:rounded-[10px] md:text-[16px] ${borderClass}`}
       />
     );
   },

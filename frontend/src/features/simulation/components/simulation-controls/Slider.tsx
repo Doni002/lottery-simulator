@@ -52,7 +52,7 @@ export function Slider({
 
   return (
     <div className="flex flex-col gap-6">
-      <span className="text-[12px] leading-[100%] text-[var(--color-simulation-text)] md:text-[16px]">{label}</span>
+      <span className="text-[12px] text-[var(--color-simulation-text)] md:text-[16px]">{label}</span>
 
       <div className="relative w-full py-2">
         <div className="pointer-events-none absolute left-0 top-1/2 h-[4px] w-full -translate-y-1/2 rounded-full bg-[var(--color-mint-pale)]" />

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { formatCurrency, formatNumber } from '../../../shared/utils/formatNumber';
 
 interface SummaryProps {
@@ -6,7 +7,7 @@ interface SummaryProps {
   costOfTickets?: number;
 }
 
-export function Summary({
+export const Summary = memo(function Summary({
   numberOfTickets = 0,
   yearsSpent = 0,
   costOfTickets = 0,
@@ -29,4 +30,4 @@ export function Summary({
       </div>
     </div>
   );
-}
+});
