@@ -47,20 +47,22 @@ export class SimulationPersistenceService {
     winningNumbers: number[],
     ticketNumbers: number[],
   ) {
-    const draw = await this.prisma.draw.create({
-      data: {
-        sessionId,
-        winningNumbers,
-        drawDate: new Date(),
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      const draw = await tx.draw.create({
+        data: {
+          sessionId,
+          winningNumbers,
+          drawDate: new Date(),
+        },
+      });
 
-    await this.prisma.ticket.create({
-      data: {
-        sessionId,
-        drawId: draw.id,
-        numbers: ticketNumbers,
-      },
+      await tx.ticket.create({
+        data: {
+          sessionId,
+          drawId: draw.id,
+          numbers: ticketNumbers,
+        },
+      });
     });
   }
 }
