@@ -1,13 +1,6 @@
-import {
-  Injectable,
-  NotFoundException,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { CreateSessionDto } from '../dto/requests/create-session.dto';
-import { UpdateCustomNumbersDto } from '../dto/requests/update-custom-numbers.dto';
 import { UpdateDrawSpeedDto } from '../dto/requests/update-draw-speed.dto';
-import { UpdateRandomSeedDto } from '../dto/requests/update-random-seed.dto';
 import {
   MatchSummary,
   SimulationCompletePayload,
@@ -94,22 +87,10 @@ export class SimulationService {
     return this.sessionService.createSession(dto);
   }
 
-  async getSession(sessionId: string) {
-    return this.sessionService.getSession(sessionId);
-  }
-
   async updateDrawSpeed(sessionId: string, dto: UpdateDrawSpeedDto) {
     const session = await this.sessionService.updateDrawSpeed(sessionId, dto);
     this.lockService.setLiveDrawSpeed(sessionId, dto.drawSpeed);
     return session;
-  }
-
-  async updateRandomSeed(sessionId: string, dto: UpdateRandomSeedDto) {
-    return this.sessionService.updateRandomSeed(sessionId, dto);
-  }
-
-  async updateCustomNumbers(sessionId: string, dto: UpdateCustomNumbersDto) {
-    return this.sessionService.updateCustomNumbers(sessionId, dto);
   }
 
   async runSimulationStep(sessionId: string) {
