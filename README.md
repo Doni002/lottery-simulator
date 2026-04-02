@@ -42,7 +42,10 @@ If your local MySQL settings are different, edit `backend/.env`:
 ```env
 DATABASE_URL="mysql://root:root@localhost:3306/lotterySimulator"
 PORT=3000
+FRONTEND_URL="http://localhost:5173"
 ```
+
+The `FRONTEND_URL` is used to restrict CORS for both HTTP and WebSocket connections.
 
 Frontend runtime endpoints:
 
@@ -194,13 +197,10 @@ flowchart LR
 
 REST endpoints:
 
-- `POST /simulation/session`
-- `GET /simulation/session/:id`
-- `PATCH /simulation/session/:id/custom-numbers`
-- `PATCH /simulation/session/:id/random-seed`
-- `PATCH /simulation/session/:id/draw-speed`
-- `POST /simulation/session/:id/start`
-- `POST /simulation/session/:id/stop`
+- `POST /simulation/session` — Create a new simulation session
+- `PATCH /simulation/session/:id/draw-speed` — Update draw speed (while simulation is running)
+- `POST /simulation/session/:id/start` — Start the simulation
+- `POST /simulation/session/:id/stop` — Stop the simulation
 
 WebSocket events:
 
@@ -215,3 +215,71 @@ lottery-simulator/
 	backend/                 # NestJS app (REST + WebSocket + Prisma)
 	README.md                # Architecture and setup documentation
 ```
+
+## 4. Task Tracking and Workflow
+
+Development was managed with a lightweight task board workflow that kept implementation aligned with the main technical areas of the project.
+
+### 4.1 Work Breakdown Structure
+
+The project was tracked in grouped work streams:
+
+- Database
+- Simulation Engine
+- Frontend
+- Tests
+- Finalization
+
+Each work stream contained smaller implementation tasks. This kept the scope of each delivery step clear and made it easier to verify progress incrementally.
+
+### 4.2 Workflow Style
+
+The workflow followed a simple progression:
+
+1. Define major work areas
+2. Break them into smaller actionable tasks
+3. Implement and validate each task end-to-end
+4. Move completed work to done only after verification
+
+This worked well for the project because the backend, frontend, database, and testing tasks could be improved iteratively without losing visibility of overall progress.
+
+### 4.3 Tracking Views Used
+
+The task management setup used multiple views for different purposes:
+
+- Summary view for overall completion status and recent activity
+- List view for grouped work streams and ownership
+- Board view for task progression across statuses such as To Do, In Progress, and Done
+
+Using all three views made it easy to switch between high-level progress tracking and detailed implementation work.
+
+### 4.4 Delivery Approach
+
+The implementation was completed in small validated increments instead of one large pass. That approach was especially useful for this project because it allowed:
+
+- backend issues to be reviewed and fixed in priority order
+- frontend behavior to be adjusted based on real usage
+- documentation to be updated after architectural changes
+- cleanup tasks to be handled after the main functionality was stable
+
+Overall, the workflow emphasized traceability, incremental delivery, and verification over speed alone.
+
+### 4.5 Workflow Screenshots
+
+#### Summary View
+
+![Task tracking summary view](docs/assets/task-summary-view.png)
+
+The summary view was used to monitor overall completion, recent activity, and short-term delivery progress across the space.
+
+#### List View
+
+![Task tracking list view](docs/assets/task-list-view.png)
+
+The list view grouped work into the main project streams such as Database, Simulation Engine, Frontend, Tests, and Finalization.
+
+#### Board View
+
+![Task tracking board view](docs/assets/task-board-view.png)
+
+The board view made it easy to manage task flow across statuses and confirm that implementation work was moving cleanly from planned to completed.

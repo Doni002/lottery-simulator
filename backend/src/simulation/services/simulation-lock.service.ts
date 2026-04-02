@@ -1,12 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
-export class SimulationLockService {
+export class SimulationLockService implements OnModuleInit {
+  private readonly logger = new Logger(SimulationLockService.name);
   private readonly pauseRequests = new Set<string>();
   private readonly liveDrawSpeeds = new Map<string, number>();
 
   constructor(private readonly prisma: PrismaService) {}
+
+  async onModuleInit() {
+    const { count } = await this.prisma.session.updateMany({
+      where: { simulationRunning: true },
+      data: { simulationRunning: false, simulationStartedAt: null },
+    });
+
+    if (count > 0) {
+      this.logger.warn(
+        `Cleared ${count} stale simulation lock(s) left from a previous run`,
+      );
+    }
+  }
 
   async tryAcquireSimulationLock(sessionId: string) {
     const updateResult = await this.prisma.session.updateMany({

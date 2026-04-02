@@ -1,8 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { CreateSessionDto } from '../dto/requests/create-session.dto';
-import { UpdateCustomNumbersDto } from '../dto/requests/update-custom-numbers.dto';
 import { UpdateDrawSpeedDto } from '../dto/requests/update-draw-speed.dto';
-import { UpdateRandomSeedDto } from '../dto/requests/update-random-seed.dto';
 import {
   MatchSummary,
   SimulationCompletePayload,
@@ -10,6 +8,10 @@ import {
   SimulationProgressPayload,
   SimulationSession,
 } from '../types/simulation.types';
+import {
+  StartSimulationResponse,
+  StopSimulationResponse,
+} from '../dto/responses/simulation.response.dto';
 import {
   DEFAULT_DRAW_SPEED_MS,
   LOTTERY_PRIZE,
@@ -22,71 +24,78 @@ import {
   calculateMatches,
   generateUniqueNumbers,
 } from '../utils/simulation-number.utils';
+import { incrementMatchBucket } from '../utils/match-summary.utils';
 import { SimulationLockService } from './simulation-lock.service';
 import { SimulationSessionService } from './simulation-session.service';
 import { SimulationPersistenceService } from './simulation-persistence.service';
+import { SimulationGateway } from '../simulation.gateway';
 
 @Injectable()
 export class SimulationService {
+  private readonly logger = new Logger(SimulationService.name);
   private readonly ticketCounts = new Map<string, number>();
 
   constructor(
     private readonly lockService: SimulationLockService,
     private readonly sessionService: SimulationSessionService,
     private readonly persistenceService: SimulationPersistenceService,
+    @Inject(forwardRef(() => SimulationGateway))
+    private readonly gateway: SimulationGateway,
   ) {}
 
   async tryAcquireSimulationLock(sessionId: string) {
     return this.lockService.tryAcquireSimulationLock(sessionId);
   }
 
-  async releaseSimulationLock(sessionId: string) {
+  async releaseSimulationLock(sessionId: string, isFinal = false) {
     await this.lockService.releaseSimulationLock(sessionId);
+    if (isFinal) {
+      this.ticketCounts.delete(sessionId);
+    }
   }
 
   requestPause(sessionId: string): void {
     this.lockService.requestPause(sessionId);
   }
 
-  async createSession(dto: CreateSessionDto) {
-    return this.sessionService.createSession(dto);
+  async startSimulation(sessionId: string): Promise<StartSimulationResponse> {
+    const normalizedId = sessionId.trim();
+
+    if (!normalizedId) {
+      return { accepted: false, message: 'sessionId is required' };
+    }
+
+    const lock = await this.lockService.tryAcquireSimulationLock(normalizedId);
+
+    if (!lock.acquired) {
+      return { accepted: false, message: lock.message };
+    }
+
+    this.gateway.executeSimulationRun(normalizedId).catch((err) => {
+      this.logger.error(`Unhandled simulation error for session ${normalizedId}`, err);
+    });
+    return { accepted: true, message: 'Simulation started' };
   }
 
-  async getSession(sessionId: string) {
-    return this.sessionService.getSession(sessionId);
+  stopSimulation(sessionId: string): StopSimulationResponse {
+    const normalizedId = sessionId.trim();
+
+    if (!normalizedId) {
+      return { accepted: false, message: 'sessionId is required' };
+    }
+
+    this.lockService.requestPause(normalizedId);
+    return { accepted: true, message: 'Stop requested' };
+  }
+
+  async createSession(dto: CreateSessionDto) {
+    return this.sessionService.createSession(dto);
   }
 
   async updateDrawSpeed(sessionId: string, dto: UpdateDrawSpeedDto) {
     const session = await this.sessionService.updateDrawSpeed(sessionId, dto);
     this.lockService.setLiveDrawSpeed(sessionId, dto.drawSpeed);
     return session;
-  }
-
-  async updateRandomSeed(sessionId: string, dto: UpdateRandomSeedDto) {
-    return this.sessionService.updateRandomSeed(sessionId, dto);
-  }
-
-  async updateCustomNumbers(sessionId: string, dto: UpdateCustomNumbersDto) {
-    return this.sessionService.updateCustomNumbers(sessionId, dto);
-  }
-
-  async runSimulationStep(sessionId: string) {
-    const session = await this.sessionService.getSessionForSimulation(sessionId);
-    const step = await this.runSimulationStepAndCollect(sessionId, session);
-    const matches =
-      await this.persistenceService.calculatePersistedMatchSummary(sessionId);
-    const { yearsSpent, costOfTickets } = this.calculateSimulationStats(
-      step.numberOfTickets,
-    );
-
-    return {
-      numberOfTickets: step.numberOfTickets,
-      yearsSpent,
-      costOfTickets,
-      matches,
-      winningNumbers: step.winningNumbers,
-      yourNumbers: step.ticketNumbers,
-    };
   }
 
   async runSimulationUntilStop(
@@ -184,10 +193,7 @@ export class SimulationService {
       return;
     }
 
-    if (matchCount === 2) summary.twoMatches++;
-    if (matchCount === 3) summary.threeMatches++;
-    if (matchCount === 4) summary.fourMatches++;
-    if (matchCount === 5) summary.fiveMatches++;
+    incrementMatchBucket(summary, matchCount);
   }
 
   private async waitForNextDraw(sessionId: string, fallbackDrawSpeedMs: number) {

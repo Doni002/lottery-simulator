@@ -66,9 +66,7 @@ export const SimulationForm = memo(function SimulationForm({
         value={drawSpeed}
         onChange={setDrawSpeed}
         onChangeEnd={(sliderValue) => {
-          if (isRunning) {
-            onDrawSpeedChange?.(mapSliderValueToDrawSpeed(sliderValue));
-          }
+          onDrawSpeedChange?.(mapSliderValueToDrawSpeed(sliderValue));
         }}
       />
 

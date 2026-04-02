@@ -17,6 +17,6 @@ import { SimulationPersistenceService } from './services/simulation-persistence.
     PrismaService,
     SimulationGateway,
   ],
-  exports: [SimulationService],
+  exports: [SimulationService, PrismaService],
 })
 export class SimulationModule {}

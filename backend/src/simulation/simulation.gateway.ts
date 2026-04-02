@@ -1,6 +1,8 @@
+import { Inject, forwardRef } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -13,12 +15,17 @@ import type {
   StartSimulationPayload,
 } from './types/simulation.types';
 
-@WebSocketGateway({ cors: { origin: '*' } })
-export class SimulationGateway {
+@WebSocketGateway()
+export class SimulationGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly simulationService: SimulationService) {}
+  private readonly socketSessions = new Map<string, string>();
+
+  constructor(
+    @Inject(forwardRef(() => SimulationService))
+    private readonly simulationService: SimulationService,
+  ) {}
 
   @SubscribeMessage('subscribeSession')
   handleSubscribeSession(
@@ -36,51 +43,28 @@ export class SimulationGateway {
 
     const room = this.getSessionRoom(sessionId);
     client.join(room);
+    this.socketSessions.set(client.id, sessionId);
     client.emit('sessionSubscribed', { sessionId });
   }
 
-  async startSimulationRun(sessionId: string) {
-    const normalizedSessionId = sessionId.trim();
+  handleDisconnect(client: Socket) {
+    const sessionId = this.socketSessions.get(client.id);
+    this.socketSessions.delete(client.id);
 
-    if (!normalizedSessionId) {
-      return {
-        accepted: false,
-        message: 'sessionId is required',
-      };
-    }
+    if (!sessionId) return;
 
-    const lock = await this.simulationService.tryAcquireSimulationLock(
-      normalizedSessionId,
-    );
-
-    if (!lock.acquired) {
-      return {
-        accepted: false,
-        message: lock.message,
-      };
-    }
-
-    void this.executeSimulationRun(normalizedSessionId);
-
-    return {
-      accepted: true,
-      message: 'Simulation started',
-    };
-  }
-
-  stopSimulationRun(sessionId: string) {
-    const normalizedSessionId = sessionId.trim();
-
-    if (!normalizedSessionId) {
-      return { accepted: false, message: 'sessionId is required' };
-    }
-
-    this.simulationService.requestPause(normalizedSessionId);
-    return { accepted: true, message: 'Stop requested' };
-  }
-
-  private async executeSimulationRun(sessionId: string) {
     const room = this.getSessionRoom(sessionId);
+    const roomSockets = this.server.sockets.adapter.rooms.get(room);
+    const remainingClients = roomSockets ? roomSockets.size : 0;
+
+    if (remainingClients === 0) {
+      this.simulationService.requestPause(sessionId);
+    }
+  }
+
+  async executeSimulationRun(sessionId: string) {
+    const room = this.getSessionRoom(sessionId);
+    let isFinal = false;
 
     try {
       const result = await this.simulationService.runSimulationUntilStop(
@@ -91,18 +75,20 @@ export class SimulationGateway {
       );
 
       if ('stopReason' in result) {
+        isFinal = true;
         this.server.to(room).emit('simulationComplete', result);
       } else {
         this.server.to(room).emit('simulationPaused', result as SimulationPausedPayload);
       }
     } catch (error) {
+      isFinal = true;
       this.emitError(room, {
         sessionId,
         message:
           error instanceof Error ? error.message : 'Simulation run failed',
       });
     } finally {
-      await this.simulationService.releaseSimulationLock(sessionId);
+      await this.simulationService.releaseSimulationLock(sessionId, isFinal);
     }
   }
 

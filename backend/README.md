@@ -1,98 +1,138 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Lottery Simulator Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS server for the Lottery Simulator application. Manages session lifecycle, simulation orchestration, concurrent access control, and persistence.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Development Setup
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+See the root [README.md](../README.md) for full setup instructions. The quick start command installs dependencies and configures the database:
 
 ```bash
-$ npm install
+cd ..
+npm run setup
 ```
 
-## Compile and run the project
+## Environment Variables
+
+Create `backend/.env` (or edit the existing one created by `npm run setup`):
+
+```env
+DATABASE_URL="mysql://user:password@localhost:3306/lotterySimulator"
+PORT=3000
+FRONTEND_URL="http://localhost:5173"
+```
+
+## Running the Server
 
 ```bash
-# development
-$ npm run start
+# Development mode (auto-reload on file changes)
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Production build
+npm run build
+node dist/main.js
 ```
 
-## Run tests
+## Code Quality and Testing
 
 ```bash
-# unit tests
-$ npm run test
+# Linting (ESLint)
+npm run lint
+npm run lint:fix
 
-# e2e tests
-$ npm run test:e2e
+# Unit tests
+npm run test
 
-# test coverage
-$ npm run test:cov
+# Unit tests in watch mode
+npm run test:watch
+
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
 
-## Deployment
+## API Overview
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+See the root [README.md](../README.md#27-api-and-realtime-contract-summary) for the complete API and WebSocket specification.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### REST Endpoints
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+- `POST /simulation/session` — Create a new simulation session
+- `PATCH /simulation/session/:id/draw-speed` — Update draw speed (while simulation is running)
+- `POST /simulation/session/:id/start` — Start the simulation
+- `POST /simulation/session/:id/stop` — Stop the simulation
+- `GET /` — Health check
+
+### WebSocket Events
+
+- **Client to server**: `subscribeSession(sessionId)` — Subscribe to session updates
+- **Server to client**: 
+  - `simulationProgress` — Simulation step update
+  - `simulationComplete` — Simulation finished (five-match or max-years reached)
+  - `simulationPaused` — Simulation paused (user stopped it or all clients disconnected)
+  - `simulationError` — Error during simulation
+
+## Architecture
+
+```
+SimulationController (REST)
+    ↓
+SimulationService (orchestration)
+    ├─→ SimulationSessionService (CRUD)
+    ├─→ SimulationLockService (concurrency)
+    ├─→ SimulationPersistenceService (DB writes)
+    └─→ SimulationGateway (WebSocket events)
+
+Database (MySQL via Prisma)
+    ├─ Session
+    ├─ Draw
+    └─ Ticket
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Key Design Patterns
 
-## Resources
+### Concurrency Control
 
-Check out a few resources that may come in handy when working with NestJS:
+A single simulation session can only run on one backend instance at a time. The `SimulationLockService` coordinates this using the database:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- `simulationRunning` boolean flag on Session table
+- On bootstrap, stale locks are automatically cleared (in case of ungraceful shutdown)
+- Pause requests are tracked in memory during active simulation
 
-## Support
+### Memory Management
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+In-memory state for active simulations:
 
-## Stay in touch
+- `ticketCounts: Map<sessionId, count>` — Tracks ticket count to avoid repeated DB queries during simulation
+- Cleaned up automatically when simulation lock is released
+- Socket room cleanup handled by `SimulationGateway.handleDisconnect()`
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Data Integrity
 
-## License
+Draw and Ticket creation is wrapped in a Prisma transaction to ensure consistency:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```typescript
+await this.prisma.$transaction(async (tx) => {
+  const draw = await tx.draw.create({ ... });
+  await tx.ticket.create({ ... });
+});
+```
+
+### WebSocket Architecture
+
+Sessions are isolated using Socket.IO rooms (one room per session ID). When the last client disconnects from a session, the gateway requests a pause via `SimulationLockService.requestPause()`.
+
+## TypeScript Strict Mode
+
+All strict flags are enabled in `tsconfig.json`:
+
+- `noImplicitAny` — No implicit `any` types
+- `strictBindCallApply` — Strict type checking for `bind`, `call`, `apply`
+- `noFallthroughCasesInSwitch` — Require breaks in switch cases
+
+## Notes
+
+- This is a single-instance backend (no distributed database locking required).
+- The simulation loop is CPU-intensive and runs asynchronously from the HTTP request that started it.
+- Socket.IO CORS is restricted to `FRONTEND_URL` for security.

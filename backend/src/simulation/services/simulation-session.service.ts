@@ -1,16 +1,7 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSessionDto } from '../dto/requests/create-session.dto';
-import { UpdateCustomNumbersDto } from '../dto/requests/update-custom-numbers.dto';
 import { UpdateDrawSpeedDto } from '../dto/requests/update-draw-speed.dto';
-import { UpdateRandomSeedDto } from '../dto/requests/update-random-seed.dto';
-import {
-  DEFAULT_DRAW_SPEED_MS,
-  REQUIRED_NUMBERS,
-} from '../constants/simulation.constants';
+import { DEFAULT_DRAW_SPEED_MS } from '../constants/simulation.constants';
 import { SimulationSession } from '../types/simulation.types';
 import { toNumberArray } from '../utils/simulation-number.utils';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -29,22 +20,6 @@ export class SimulationSessionService {
         customNumbers: dto.customNumbers ?? undefined,
       },
     });
-  }
-
-  async getSession(sessionId: string) {
-    const session = await this.prisma.session.findUnique({
-      where: { id: sessionId },
-      include: {
-        tickets: true,
-        draws: true,
-      },
-    });
-
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
-
-    return session;
   }
 
   async getSessionForSimulation(sessionId: string): Promise<SimulationSession> {
@@ -67,68 +42,17 @@ export class SimulationSessionService {
   }
 
   async updateDrawSpeed(sessionId: string, dto: UpdateDrawSpeedDto) {
-    const updateResult = await this.prisma.session.updateMany({
+    const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
-      data: {
-        drawSpeed: dto.drawSpeed,
-      },
     });
 
-    if (updateResult.count === 0) {
+    if (!session) {
       throw new NotFoundException('Session not found');
     }
 
-    return this.getSession(sessionId);
-  }
-
-  async updateRandomSeed(sessionId: string, dto: UpdateRandomSeedDto) {
-    if (!dto.randomSeedEnabled) {
-      const session = await this.prisma.session.findUnique({
-        where: { id: sessionId },
-        select: { customNumbers: true },
-      });
-
-      if (!session) {
-        throw new NotFoundException('Session not found');
-      }
-
-      const numbers = Array.isArray(session.customNumbers)
-        ? toNumberArray(session.customNumbers)
-        : [];
-
-      if (numbers.length !== REQUIRED_NUMBERS) {
-        throw new BadRequestException(
-          'Set valid customNumbers before disabling random mode',
-        );
-      }
-    }
-
-    const updateResult = await this.prisma.session.updateMany({
+    return this.prisma.session.update({
       where: { id: sessionId },
-      data: {
-        randomSeedEnabled: dto.randomSeedEnabled,
-      },
+      data: { drawSpeed: dto.drawSpeed },
     });
-
-    if (updateResult.count === 0) {
-      throw new NotFoundException('Session not found');
-    }
-
-    return this.getSession(sessionId);
-  }
-
-  async updateCustomNumbers(sessionId: string, dto: UpdateCustomNumbersDto) {
-    const updateResult = await this.prisma.session.updateMany({
-      where: { id: sessionId },
-      data: {
-        customNumbers: dto.customNumbers,
-      },
-    });
-
-    if (updateResult.count === 0) {
-      throw new NotFoundException('Session not found');
-    }
-
-    return this.getSession(sessionId);
   }
 }
