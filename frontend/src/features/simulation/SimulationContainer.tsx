@@ -4,7 +4,7 @@ import { REQUIRED_NUMBERS } from './constants/simulation.constants';
 import { useSimulation } from './hooks/useSimulation';
 
 export function SimulationContainer() {
-  const { isRunning, error, progress, start, stop, updateDrawSpeed } = useSimulation();
+  const { isRunning, error, progress, completion, start, stop, updateDrawSpeed } = useSimulation();
   const [playWithRandomNumbers, setPlayWithRandomNumbers] = useState(true);
   const [customNumbers, setCustomNumbers] = useState<(number | undefined)[]>(
     Array(REQUIRED_NUMBERS).fill(undefined),
@@ -51,6 +51,7 @@ export function SimulationContainer() {
           numberOfTickets={progress?.numberOfTickets}
           yearsSpent={progress?.yearsSpent}
           costOfTickets={progress?.costOfTickets}
+          highlightFiveMatchHit={completion?.stopReason === 'fiveMatchHit'}
         />
         <ResultDetails matches={progress?.matches} />
         <NumbersComparison
