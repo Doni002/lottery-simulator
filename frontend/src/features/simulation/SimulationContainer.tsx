@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Card, NumbersComparison, ResultDetails, SimulationForm, Summary } from './components';
 import { REQUIRED_NUMBERS } from './constants/simulation.constants';
 import { useSimulation } from './hooks/useSimulation';
@@ -30,9 +30,18 @@ export function SimulationContainer() {
     return started;
   }, [start]);
 
+  const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+    };
+  }, []);
+
   const handleNonEditableYourNumbersClick = useCallback(() => {
+    if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
     setIsCheckboxBlinking(true);
-    setTimeout(() => setIsCheckboxBlinking(false), 500);
+    blinkTimeoutRef.current = setTimeout(() => setIsCheckboxBlinking(false), 500);
   }, []);
 
   return (
