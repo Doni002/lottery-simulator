@@ -42,7 +42,10 @@ If your local MySQL settings are different, edit `backend/.env`:
 ```env
 DATABASE_URL="mysql://root:root@localhost:3306/lotterySimulator"
 PORT=3000
+FRONTEND_URL="http://localhost:5173"
 ```
+
+The `FRONTEND_URL` is used to restrict CORS for both HTTP and WebSocket connections.
 
 Frontend runtime endpoints:
 
@@ -194,13 +197,10 @@ flowchart LR
 
 REST endpoints:
 
-- `POST /simulation/session`
-- `GET /simulation/session/:id`
-- `PATCH /simulation/session/:id/custom-numbers`
-- `PATCH /simulation/session/:id/random-seed`
-- `PATCH /simulation/session/:id/draw-speed`
-- `POST /simulation/session/:id/start`
-- `POST /simulation/session/:id/stop`
+- `POST /simulation/session` — Create a new simulation session
+- `PATCH /simulation/session/:id/draw-speed` — Update draw speed (while simulation is running)
+- `POST /simulation/session/:id/start` — Start the simulation
+- `POST /simulation/session/:id/stop` — Stop the simulation
 
 WebSocket events:
 
