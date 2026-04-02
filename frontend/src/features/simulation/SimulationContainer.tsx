@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Card, NumbersComparison, ResultDetails, SimulationForm, Summary } from './components';
 import { REQUIRED_NUMBERS } from './constants/simulation.constants';
 import { useSimulation } from './hooks/useSimulation';
 
 export function SimulationContainer() {
-  const { isLoading, isRunning, error, progress, start, stop, updateDrawSpeed } = useSimulation();
+  const { isRunning, error, progress, completion, start, stop, updateDrawSpeed } = useSimulation();
   const [playWithRandomNumbers, setPlayWithRandomNumbers] = useState(true);
   const [customNumbers, setCustomNumbers] = useState<(number | undefined)[]>(
     Array(REQUIRED_NUMBERS).fill(undefined),
@@ -12,15 +12,15 @@ export function SimulationContainer() {
   const [isCheckboxBlinking, setIsCheckboxBlinking] = useState(false);
   const [hasSimulationStarted, setHasSimulationStarted] = useState(false);
 
-  const handleToggleRandom = () => {
+  const handleToggleRandom = useCallback(() => {
     if (hasSimulationStarted) return;
     setPlayWithRandomNumbers((prev) => {
       if (!prev) setCustomNumbers(Array(REQUIRED_NUMBERS).fill(undefined));
       return !prev;
     });
-  };
+  }, [hasSimulationStarted]);
 
-  const handleStartSimulation = async (params: Parameters<typeof start>[0]) => {
+  const handleStartSimulation = useCallback(async (params: Parameters<typeof start>[0]) => {
     const started = await start(params);
 
     if (started) {
@@ -28,12 +28,21 @@ export function SimulationContainer() {
     }
 
     return started;
-  };
+  }, [start]);
 
-  const handleNonEditableYourNumbersClick = () => {
+  const blinkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
+    };
+  }, []);
+
+  const handleNonEditableYourNumbersClick = useCallback(() => {
+    if (blinkTimeoutRef.current) clearTimeout(blinkTimeoutRef.current);
     setIsCheckboxBlinking(true);
-    setTimeout(() => setIsCheckboxBlinking(false), 500);
-  };
+    blinkTimeoutRef.current = setTimeout(() => setIsCheckboxBlinking(false), 500);
+  }, []);
 
   return (
     <div className="h-full min-h-full flex items-center justify-center p-4 md:p-6">
@@ -42,6 +51,7 @@ export function SimulationContainer() {
           numberOfTickets={progress?.numberOfTickets}
           yearsSpent={progress?.yearsSpent}
           costOfTickets={progress?.costOfTickets}
+          highlightFiveMatchHit={completion?.stopReason === 'fiveMatchHit'}
         />
         <ResultDetails matches={progress?.matches} />
         <NumbersComparison
@@ -52,7 +62,6 @@ export function SimulationContainer() {
           onNonEditableYourNumbersClick={handleNonEditableYourNumbersClick}
         />
         <SimulationForm
-          isLoading={isLoading}
           isRunning={isRunning}
           error={error}
           playWithRandomNumbers={playWithRandomNumbers}

@@ -21,7 +21,7 @@ export function StartButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-full cursor-pointer rounded-[12px] bg-[var(--color-mint)] px-6 py-3 text-[12px] font-semibold leading-[100%] text-white shadow-[var(--shadow-element)] disabled:opacity-60 disabled:cursor-not-allowed md:text-[16px]"
+      className="w-full cursor-pointer rounded-[12px] bg-[var(--color-mint)] px-6 py-3 text-[12px] font-semibold text-white shadow-[var(--shadow-element)] disabled:opacity-60 disabled:cursor-not-allowed md:text-[16px]"
     >
       {getLabel()}
     </button>

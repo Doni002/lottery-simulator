@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { type MatchSummary } from '../../types/simulation.types';
 import { ResultCard } from './ResultCard';
 
@@ -5,7 +6,7 @@ interface ResultDetailsProps {
   matches?: MatchSummary;
 }
 
-export function ResultDetails({
+export const ResultDetails = memo(function ResultDetails({
   matches = {
     twoMatches: 0,
     threeMatches: 0,
@@ -29,4 +30,4 @@ export function ResultDetails({
       </div>
     </div>
   );
-}
+});

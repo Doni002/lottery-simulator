@@ -27,10 +27,21 @@ export function useSimulationSocket({
   const onPausedRef = useRef(onPaused);
   const onErrorRef = useRef(onError);
 
-  onProgressRef.current = onProgress;
-  onCompleteRef.current = onComplete;
-  onPausedRef.current = onPaused;
-  onErrorRef.current = onError;
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  }, [onProgress]);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
+    onPausedRef.current = onPaused;
+  }, [onPaused]);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   useEffect(() => {
     if (!sessionId) return;
