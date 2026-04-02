@@ -29,6 +29,10 @@ export const NumberInputBadge = forwardRef<HTMLInputElement, NumberInputBadgePro
           }
           const n = Math.min(MAX_LOTTO_NUM, Math.max(MIN_LOTTO_NUM, Number(raw)));
           onChange(n);
+          
+          if (raw.length === 2 && n >= MIN_LOTTO_NUM && n <= MAX_LOTTO_NUM) {
+            onEnter?.();
+          }
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
