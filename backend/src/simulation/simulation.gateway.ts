@@ -64,6 +64,7 @@ export class SimulationGateway implements OnGatewayDisconnect {
 
   async executeSimulationRun(sessionId: string) {
     const room = this.getSessionRoom(sessionId);
+    let isFinal = false;
 
     try {
       const result = await this.simulationService.runSimulationUntilStop(
@@ -74,18 +75,20 @@ export class SimulationGateway implements OnGatewayDisconnect {
       );
 
       if ('stopReason' in result) {
+        isFinal = true;
         this.server.to(room).emit('simulationComplete', result);
       } else {
         this.server.to(room).emit('simulationPaused', result as SimulationPausedPayload);
       }
     } catch (error) {
+      isFinal = true;
       this.emitError(room, {
         sessionId,
         message:
           error instanceof Error ? error.message : 'Simulation run failed',
       });
     } finally {
-      await this.simulationService.releaseSimulationLock(sessionId);
+      await this.simulationService.releaseSimulationLock(sessionId, isFinal);
     }
   }
 

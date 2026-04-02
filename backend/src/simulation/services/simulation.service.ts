@@ -46,9 +46,11 @@ export class SimulationService {
     return this.lockService.tryAcquireSimulationLock(sessionId);
   }
 
-  async releaseSimulationLock(sessionId: string) {
+  async releaseSimulationLock(sessionId: string, isFinal = false) {
     await this.lockService.releaseSimulationLock(sessionId);
-    this.ticketCounts.delete(sessionId);
+    if (isFinal) {
+      this.ticketCounts.delete(sessionId);
+    }
   }
 
   requestPause(sessionId: string): void {
