@@ -3,7 +3,6 @@ import { simulationApi } from '../api/simulation.api';
 import { useSimulationSocket } from './useSimulationSocket';
 import type {
   SimulationCompletePayload,
-  SimulationPausedPayload,
   SimulationProgressPayload,
 } from '../types/simulation.types';
 
@@ -37,7 +36,7 @@ export function useSimulation() {
     setIsRunning(false);
   }, []);
 
-  const handlePaused = useCallback((_payload: SimulationPausedPayload) => {
+  const handlePaused = useCallback(() => {
     setIsRunning(false);
     setError(null);
   }, []);
