@@ -11,7 +11,6 @@ import { Server, Socket } from 'socket.io';
 import { SimulationService } from './services/simulation.service';
 import type {
   SimulationErrorPayload,
-  SimulationPausedPayload,
   StartSimulationPayload,
 } from './types/simulation.types';
 
@@ -47,7 +46,7 @@ export class SimulationGateway implements OnGatewayDisconnect {
     }
 
     const room = this.getSessionRoom(sessionId);
-    client.join(room);
+    void client.join(room);
     this.socketSessions.set(client.id, sessionId);
     client.emit('sessionSubscribed', { sessionId });
   }
@@ -79,7 +78,6 @@ export class SimulationGateway implements OnGatewayDisconnect {
 
   async executeSimulationRun(sessionId: string) {
     const room = this.getSessionRoom(sessionId);
-    let isFinal = false;
 
     try {
       const result = await this.simulationService.runSimulationUntilStop(
@@ -90,20 +88,18 @@ export class SimulationGateway implements OnGatewayDisconnect {
       );
 
       if ('stopReason' in result) {
-        isFinal = true;
         this.server.to(room).emit('simulationComplete', result);
       } else {
-        this.server.to(room).emit('simulationPaused', result as SimulationPausedPayload);
+        this.server.to(room).emit('simulationPaused', result);
       }
     } catch (error) {
-      isFinal = true;
       this.emitError(room, {
         sessionId,
         message:
           error instanceof Error ? error.message : 'Simulation run failed',
       });
     } finally {
-      await this.simulationService.releaseSimulationLock(sessionId, isFinal);
+      await this.simulationService.releaseSimulationLock(sessionId);
     }
   }
 
@@ -113,7 +109,7 @@ export class SimulationGateway implements OnGatewayDisconnect {
 
   private unsubscribeClientFromSession(client: Socket, sessionId: string) {
     const room = this.getSessionRoom(sessionId);
-    client.leave(room);
+    void client.leave(room);
 
     if (this.socketSessions.get(client.id) === sessionId) {
       this.socketSessions.delete(client.id);

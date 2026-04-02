@@ -26,7 +26,10 @@ describe('simulation-number.utils', () => {
 
   describe('calculateMatches', () => {
     it('returns sorted matching numbers and match count', () => {
-      const result = calculateMatches([10, 20, 30, 40, 50], [50, 7, 10, 99, 20]);
+      const result = calculateMatches(
+        [10, 20, 30, 40, 50],
+        [50, 7, 10, 99, 20],
+      );
 
       expect(result).toEqual({
         matchCount: 3,

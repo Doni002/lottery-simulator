@@ -27,7 +27,7 @@ export class CreateSessionDto {
   @IsBoolean()
   randomSeedEnabled: boolean;
 
-  @ValidateIf((o) => o.randomSeedEnabled === false)
+  @ValidateIf((o: CreateSessionDto) => o.randomSeedEnabled === false)
   @ArrayMinSize(REQUIRED_NUMBERS)
   @ArrayMaxSize(REQUIRED_NUMBERS)
   @IsNumber({}, { each: true })

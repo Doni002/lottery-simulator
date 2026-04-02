@@ -1,7 +1,7 @@
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ServerOptions } from 'socket.io';
+import { Server, ServerOptions } from 'socket.io';
 
 export class CorsIoAdapter extends IoAdapter {
   private readonly corsOrigin: string;
@@ -12,10 +12,10 @@ export class CorsIoAdapter extends IoAdapter {
       configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173';
   }
 
-  createIOServer(port: number, options?: ServerOptions) {
+  createIOServer(port: number, options?: ServerOptions): Server {
     return super.createIOServer(port, {
       ...options,
       cors: { origin: this.corsOrigin, credentials: true },
-    });
+    }) as Server;
   }
 }

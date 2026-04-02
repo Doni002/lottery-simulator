@@ -2,7 +2,7 @@ import { Controller, Post, Patch, Body, Param } from '@nestjs/common';
 import { SimulationService } from './services/simulation.service';
 import { CreateSessionDto } from 'src/simulation/dto/requests/create-session.dto';
 import { UpdateDrawSpeedDto } from 'src/simulation/dto/requests/update-draw-speed.dto';
-import {
+import type {
   CreateSessionResponse,
   StartSimulationResponse,
   StopSimulationResponse,
@@ -13,7 +13,9 @@ export class SimulationController {
   constructor(private readonly simulationService: SimulationService) {}
 
   @Post('session')
-  async createSession(@Body() dto: CreateSessionDto): Promise<CreateSessionResponse> {
+  async createSession(
+    @Body() dto: CreateSessionDto,
+  ): Promise<CreateSessionResponse> {
     const session = await this.simulationService.createSession(dto);
     return { session };
   }
@@ -23,7 +25,10 @@ export class SimulationController {
     @Param('id') sessionId: string,
     @Body() dto: UpdateDrawSpeedDto,
   ): Promise<CreateSessionResponse> {
-    const session = await this.simulationService.updateDrawSpeed(sessionId, dto);
+    const session = await this.simulationService.updateDrawSpeed(
+      sessionId,
+      dto,
+    );
     return { session };
   }
 
@@ -35,9 +40,7 @@ export class SimulationController {
   }
 
   @Post('session/:id/stop')
-  async stopSimulation(
-    @Param('id') sessionId: string,
-  ): Promise<StopSimulationResponse> {
+  stopSimulation(@Param('id') sessionId: string): StopSimulationResponse {
     return this.simulationService.stopSimulation(sessionId);
   }
 }

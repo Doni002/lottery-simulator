@@ -11,7 +11,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class SimulationPersistenceService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async calculatePersistedMatchSummary(sessionId: string): Promise<MatchSummary> {
+  async calculatePersistedMatchSummary(
+    sessionId: string,
+  ): Promise<MatchSummary> {
     const persistedTickets = await this.prisma.ticket.findMany({
       where: { sessionId },
       select: {

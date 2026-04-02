@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { CreateSessionDto } from '../dto/requests/create-session.dto';
 import { UpdateDrawSpeedDto } from '../dto/requests/update-draw-speed.dto';
 import {
@@ -47,11 +53,8 @@ export class SimulationService {
     return this.lockService.tryAcquireSimulationLock(sessionId);
   }
 
-  async releaseSimulationLock(sessionId: string, isFinal = false) {
+  async releaseSimulationLock(sessionId: string) {
     await this.lockService.releaseSimulationLock(sessionId);
-    if (isFinal) {
-      this.ticketCounts.delete(sessionId);
-    }
   }
 
   requestPause(sessionId: string): void {
@@ -72,7 +75,10 @@ export class SimulationService {
     }
 
     this.gateway.executeSimulationRun(normalizedId).catch((err) => {
-      this.logger.error(`Unhandled simulation error for session ${normalizedId}`, err);
+      this.logger.error(
+        `Unhandled simulation error for session ${normalizedId}`,
+        err,
+      );
     });
     return { accepted: true, message: 'Simulation started' };
   }
@@ -102,7 +108,8 @@ export class SimulationService {
     sessionId: string,
     onProgress: (payload: SimulationProgressPayload) => void | Promise<void>,
   ): Promise<SimulationCompletePayload | SimulationPausedPayload> {
-    const session = await this.sessionService.getSessionForSimulation(sessionId);
+    const session =
+      await this.sessionService.getSessionForSimulation(sessionId);
     this.lockService.setLiveDrawSpeed(sessionId, session.drawSpeed);
 
     const matches =
@@ -196,7 +203,10 @@ export class SimulationService {
     incrementMatchBucket(summary, matchCount);
   }
 
-  private async waitForNextDraw(sessionId: string, fallbackDrawSpeedMs: number) {
+  private async waitForNextDraw(
+    sessionId: string,
+    fallbackDrawSpeedMs: number,
+  ) {
     const startedAt = Date.now();
 
     while (true) {
@@ -223,7 +233,11 @@ export class SimulationService {
   private resolveTicketNumbers(session: SimulationSession): number[] {
     const customNumbers = session.customNumbers;
 
-    if (customNumbers && customNumbers.length > 0 && !session.randomSeedEnabled) {
+    if (
+      customNumbers &&
+      customNumbers.length > 0 &&
+      !session.randomSeedEnabled
+    ) {
       return customNumbers;
     }
 
