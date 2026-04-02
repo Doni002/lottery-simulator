@@ -41,10 +41,31 @@ export class SimulationGateway implements OnGatewayDisconnect {
       return;
     }
 
+    const previousSessionId = this.socketSessions.get(client.id);
+    if (previousSessionId && previousSessionId !== sessionId) {
+      this.unsubscribeClientFromSession(client, previousSessionId);
+    }
+
     const room = this.getSessionRoom(sessionId);
     client.join(room);
     this.socketSessions.set(client.id, sessionId);
     client.emit('sessionSubscribed', { sessionId });
+  }
+
+  @SubscribeMessage('unsubscribeSession')
+  handleUnsubscribeSession(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload?: StartSimulationPayload,
+  ) {
+    const requestedSessionId = payload?.sessionId?.trim();
+    const trackedSessionId = this.socketSessions.get(client.id);
+    const sessionId = requestedSessionId || trackedSessionId;
+
+    if (!sessionId) {
+      return;
+    }
+
+    this.unsubscribeClientFromSession(client, sessionId);
   }
 
   handleDisconnect(client: Socket) {
@@ -53,13 +74,7 @@ export class SimulationGateway implements OnGatewayDisconnect {
 
     if (!sessionId) return;
 
-    const room = this.getSessionRoom(sessionId);
-    const roomSockets = this.server.sockets.adapter.rooms.get(room);
-    const remainingClients = roomSockets ? roomSockets.size : 0;
-
-    if (remainingClients === 0) {
-      this.simulationService.requestPause(sessionId);
-    }
+    this.pauseSessionIfNoSubscribers(sessionId);
   }
 
   async executeSimulationRun(sessionId: string) {
@@ -94,6 +109,27 @@ export class SimulationGateway implements OnGatewayDisconnect {
 
   private emitError(room: string, payload: SimulationErrorPayload) {
     this.server.to(room).emit('simulationError', payload);
+  }
+
+  private unsubscribeClientFromSession(client: Socket, sessionId: string) {
+    const room = this.getSessionRoom(sessionId);
+    client.leave(room);
+
+    if (this.socketSessions.get(client.id) === sessionId) {
+      this.socketSessions.delete(client.id);
+    }
+
+    this.pauseSessionIfNoSubscribers(sessionId);
+  }
+
+  private pauseSessionIfNoSubscribers(sessionId: string) {
+    const room = this.getSessionRoom(sessionId);
+    const roomSockets = this.server.sockets.adapter.rooms.get(room);
+    const remainingClients = roomSockets ? roomSockets.size : 0;
+
+    if (remainingClients === 0) {
+      this.simulationService.requestPause(sessionId);
+    }
   }
 
   private getSessionRoom(sessionId: string) {

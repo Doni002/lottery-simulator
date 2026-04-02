@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import {
   MAX_LOTTO_NUM,
   REQUIRED_NUMBERS,
@@ -15,7 +16,7 @@ export function generateUniqueNumbers(
   const pool = Array.from({ length: maxNumber }, (_, index) => index + 1);
 
   while (numbers.length < count) {
-    const randomIndex = Math.floor(Math.random() * pool.length);
+    const randomIndex = randomInt(pool.length);
     numbers.push(pool.splice(randomIndex, 1)[0]);
   }
 

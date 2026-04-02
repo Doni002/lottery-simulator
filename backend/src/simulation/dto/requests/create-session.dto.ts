@@ -10,7 +10,9 @@ import {
   ValidateIf,
 } from 'class-validator';
 import {
+  MAX_DRAW_SPEED_MS,
   MAX_LOTTO_NUM,
+  MIN_DRAW_SPEED_MS,
   MIN_LOTTO_NUM,
   REQUIRED_NUMBERS,
 } from '../../constants/simulation.constants';
@@ -18,8 +20,8 @@ import { IsUniqueArrayConstraint } from '../../../common/validators/unique-array
 
 export class CreateSessionDto {
   @IsInt()
-  @Min(10)
-  @Max(1000)
+  @Min(MIN_DRAW_SPEED_MS)
+  @Max(MAX_DRAW_SPEED_MS)
   drawSpeed: number;
 
   @IsBoolean()
