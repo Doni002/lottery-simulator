@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { CreateSessionDto } from '../dto/requests/create-session.dto';
 import { UpdateDrawSpeedDto } from '../dto/requests/update-draw-speed.dto';
 import {
@@ -32,6 +32,7 @@ import { SimulationGateway } from '../simulation.gateway';
 
 @Injectable()
 export class SimulationService {
+  private readonly logger = new Logger(SimulationService.name);
   private readonly ticketCounts = new Map<string, number>();
 
   constructor(
@@ -70,7 +71,9 @@ export class SimulationService {
       return { accepted: false, message: lock.message };
     }
 
-    void this.gateway.executeSimulationRun(normalizedId);
+    this.gateway.executeSimulationRun(normalizedId).catch((err) => {
+      this.logger.error(`Unhandled simulation error for session ${normalizedId}`, err);
+    });
     return { accepted: true, message: 'Simulation started' };
   }
 
@@ -93,25 +96,6 @@ export class SimulationService {
     const session = await this.sessionService.updateDrawSpeed(sessionId, dto);
     this.lockService.setLiveDrawSpeed(sessionId, dto.drawSpeed);
     return session;
-  }
-
-  async runSimulationStep(sessionId: string) {
-    const session = await this.sessionService.getSessionForSimulation(sessionId);
-    const step = await this.runSimulationStepAndCollect(sessionId, session);
-    const matches =
-      await this.persistenceService.calculatePersistedMatchSummary(sessionId);
-    const { yearsSpent, costOfTickets } = this.calculateSimulationStats(
-      step.numberOfTickets,
-    );
-
-    return {
-      numberOfTickets: step.numberOfTickets,
-      yearsSpent,
-      costOfTickets,
-      matches,
-      winningNumbers: step.winningNumbers,
-      yourNumbers: step.ticketNumbers,
-    };
   }
 
   async runSimulationUntilStop(

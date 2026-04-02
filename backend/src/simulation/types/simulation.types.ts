@@ -16,11 +16,6 @@ export type PersistedTicketSnapshot = {
   ticketNumbers: number[];
 };
 
-export type SimulationStats = {
-  yearsSpent: number;
-  costOfTickets: number;
-};
-
 export type SimulationStopReason = 'fiveMatchHit' | 'maxYearsReached';
 
 export type StartSimulationPayload = {

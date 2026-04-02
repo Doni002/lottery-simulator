@@ -22,22 +22,6 @@ export class SimulationSessionService {
     });
   }
 
-  async getSession(sessionId: string) {
-    const session = await this.prisma.session.findUnique({
-      where: { id: sessionId },
-      include: {
-        tickets: true,
-        draws: true,
-      },
-    });
-
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
-
-    return session;
-  }
-
   async getSessionForSimulation(sessionId: string): Promise<SimulationSession> {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
@@ -58,17 +42,17 @@ export class SimulationSessionService {
   }
 
   async updateDrawSpeed(sessionId: string, dto: UpdateDrawSpeedDto) {
-    const updateResult = await this.prisma.session.updateMany({
+    const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
-      data: {
-        drawSpeed: dto.drawSpeed,
-      },
     });
 
-    if (updateResult.count === 0) {
+    if (!session) {
       throw new NotFoundException('Session not found');
     }
 
-    return this.getSession(sessionId);
+    return this.prisma.session.update({
+      where: { id: sessionId },
+      data: { drawSpeed: dto.drawSpeed },
+    });
   }
 }
