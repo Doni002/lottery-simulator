@@ -13,6 +13,7 @@ export type StartSimulationParams = {
 };
 
 export function useSimulation() {
+  const isDev = import.meta.env.DEV;
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -113,9 +114,43 @@ export function useSimulation() {
   }, [sessionId]);
 
   const updateDrawSpeed = useCallback(async (drawSpeed: number): Promise<void> => {
-    if (!sessionId) return;
-    await simulationApi.updateDrawSpeed(sessionId, drawSpeed);
-  }, [sessionId]);
+    if (!sessionId) {
+      if (isDev) {
+        console.warn('[useSimulation] skipped draw speed update: no active session', {
+          drawSpeed,
+        });
+      }
+      return;
+    }
+
+    if (isDev) {
+      console.log('[useSimulation] sending draw speed update', {
+        sessionId,
+        drawSpeed,
+      });
+    }
+
+    try {
+      await simulationApi.updateDrawSpeed(sessionId, drawSpeed);
+
+      if (isDev) {
+        console.log('[useSimulation] draw speed update succeeded', {
+          sessionId,
+          drawSpeed,
+        });
+      }
+    } catch (err) {
+      if (isDev) {
+        console.error('[useSimulation] draw speed update failed', {
+          sessionId,
+          drawSpeed,
+          error: err,
+        });
+      }
+
+      throw err;
+    }
+  }, [isDev, sessionId]);
 
   return { sessionId, isRunning, isLoading, error, progress, completion, start, stop, updateDrawSpeed };
 }
